@@ -1,0 +1,19 @@
+{% extends 'default_layout.html' %}
+{% block content %}
+    {% if user %}
+        {% if schedules[0] %}
+            {% for schedule in schedules %}
+                <a href="{{ url_for('view_schedule', alias=schedule.alias)}}">{{schedule.name}}</a>
+            {% endfor %}
+        {% else %}
+
+            <div class="card shadow-sm bg-light" style="border: 0px">
+                <div class="card-header pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
+                <div class="card-body">
+                    <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
+                </div>
+                <div class="btn btn-outline-secondary" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</div>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endblock content %}

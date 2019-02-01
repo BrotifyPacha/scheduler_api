@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <!-- personal -->
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}"/>
+
+    {% if title %}
+        <title>Scheduler - {{title}}</title>
+    {% else %}
+        <title>Scheduler</title>
+    {% endif %}
+
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #f8f8f8;
+        }
+        form {
+            width: 100%;
+            max-width: 380px;
+            min-width: 300px;
+        }
+        .form-control {
+            position: relative;
+            font-size: 24px;
+            height: auto;
+        }
+        .form-control:focus{
+            z-index: 2;
+        }
+        .username {
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+        .password {
+            border-radius: 0px;
+            margin-top: -1px;
+        }
+        .confirmation {
+            border-top-left-radius: 0px;
+            border-top-right-radius: 0px;
+            margin-top: -1px;
+        }
+    </style>
+</head>
+<body class="container">
+    <form action="" method="post">
+        <h2 class="h2 mb-3">Регистрация</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{category}}">{{message}}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <input class="form-control username" type="text" name="username" placeholder="Логин" required autofocus>
+        <input class="form-control password" type="password" name="password" placeholder="Пароль" required>
+        <input class="form-control confirmation mb-3" type="password" name="confirmation" placeholder="Подтверждение пароля" required>
+        <div class="btn-group btn-block" role="group">
+            <input class="btn btn-primary btn-lg" style="width: 50%" type="submit" value="Готово">
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('home') }}" style="width: 50%">Позже</a>
+        </div>
+        <p class="text-center mt-3 text-muted">Уже есть аккаунт? <a class="text text-lg" href="{{url_for('signin')}}">Войдите</a></p>
+
+    </form>
+</body>
+</html>
