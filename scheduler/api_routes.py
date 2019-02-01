@@ -66,6 +66,10 @@ def add_schedule():
     if user_id is None:
         abort(401)
 
+    if 'name' not in request.args:
+        abort(400)
+    name = request.args['name']
+
     alias = utils.gen_schedule_alias()
     if 'alias' in request.args:
         alias = request.args['alias']
@@ -80,6 +84,7 @@ def add_schedule():
     first_week_start = request.args['first_week_start']
 
     schedule_insert = db.schedules.insert_one({
+        'name': name,
         'alias': alias,
         'privacy': privacy,
         'first_week_start': first_week_start,
@@ -113,6 +118,7 @@ def manage_schedule(alias):
                                          'creator']):  # str нужно чтобы избавиться от ObjectId типа
             abort(401)
         output = {
+            'name': schedule['name'],
             'alias': schedule['alias'],
             'privacy': schedule['privacy'],
             'first_week_start': schedule['first_week_start'],
@@ -135,6 +141,8 @@ def manage_schedule(alias):
         db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {'changes': change}})
         return ''
     elif request.method == 'PATCH':
+        if 'name' in request.args:
+            schedule['name'] = request.args['name']
         if 'alias' in request.args:
             schedule['alias'] = request.args['alias']
         if 'privacy' in request.args:
@@ -147,6 +155,7 @@ def manage_schedule(alias):
             schedule['schedule'] = request.args['schedule']
 
         db.schedules.update_one({'_id': schedule['_id']}, {'$set': {
+            'name': schedule['name'],
             'alias': schedule['alias'],
             'privacy': schedule['privacy'],
             'first_week_start': schedule['first_week_start'],

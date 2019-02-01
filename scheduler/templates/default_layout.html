@@ -3,35 +3,71 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <!--meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"-->
 
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     <!-- personal -->
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}"/>
-    <!-- material -->
-    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css"/>
 
     {% if title %}
         <title>Scheduler - {{title}}</title>
     {% else %}
         <title>Scheduler</title>
     {% endif %}
+
 </head>
 <body>
-    <header class="mdc-toolbar">
-      <div class="mdc-toolbar__row">
-        <section class="mdc-toolbar__section mdc-toolbar__section--align-end">
-          <a href="#" class="material-icons mdc-toolbar__menu-icon">menu</a>
-          <span class="mdc-toolbar__title">Title</span>
-        </section>
-      </div>
-    </header>
+    <nav class="shadow-sm navbar navbar-expand-md bg-light mb-3">
+        <div class="container">
+            <a class="navbar-brand" href="{{url_for('home')}}"><b>Scheduler</b></a>
+            <button class="navbar-toggler btn btn-primary" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">Меню</button>
+            <div class="collapse navbar-collapse" id="collapse-menu">
+                <form class="form-inline ml-auto mr-auto">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Поиск" aria-label="Search">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary input-group-button">Искать</button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if user %}
+                    <div class="navbar-nav">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle mb-0 mt-2 my-md-0"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
+                            <div class="dropdown-menu m-0">
+                                <a class="dropdown-item" href="#">Приглашения</a>
+                                <a class="dropdown-item" href="#">Настройки</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{url_for('logout')}}">Выйти</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                <div class="mt-3 mb-1 my-md-0">
+                    <a class="mr-3" href="{{url_for('signin')}}">Войти</a>
+                    <a href="{{url_for('signup')}}">Зарегистрироваться</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
     <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{category}}">
+                        {{message}}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </div>
-    <button class="foo-button mdc-button">Button</button>
-    <script>
-        mdc.ripple.MDCRipple.attachTo(document.querySelector('.foo-button'));
-    </script>
-    <!-- material js -->
-    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
 </body>
 </html>
