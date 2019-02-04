@@ -12,7 +12,7 @@
                 <div class="card-body">
                     <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
                 </div>
-                <div class="btn btn-outline-secondary" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</div>
+                <a class="btn btn-outline-secondary" href="{{ url_for('create_schedule') }}" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</a>
             </div>
         {% endif %}
     {% else %}

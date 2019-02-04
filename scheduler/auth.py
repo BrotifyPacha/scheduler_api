@@ -39,6 +39,17 @@ def check_authorization_header(request):
         return None
     return user_id
 
+def check_session_for_token(session):
+    if 'token' not in session:
+        return False
+    user_id = check_token(session['token'])
+    if user_id is None:
+        return False
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    schedules = db.schedules.find({'_id': {'$in': user['subscribed_to']}}, {'name': 1, 'alias': 1})
+    return {'user': user, 'schedules': schedules}
+
+
 def check_token(token):
     try:
         user_id = jwt.decode(token, secret, algorithms=['HS512'])['user_id']

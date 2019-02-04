@@ -1,19 +1,55 @@
 {% extends 'default_layout.html' %}
+{% block head %}
+    {{ super() }}
+    <style>
+        .weekholder{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        .card {
+            border: 0px
+        }
+    </style>
+{% endblock %}
 {% block content %}
+    {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
     {% if user %}
-        {% if schedules[0] %}
-            {% for schedule in schedules %}
-                <a href="{{ url_for('view_schedule', alias=schedule.alias)}}">{{schedule.name}}</a>
-            {% endfor %}
-        {% else %}
-
-            <div class="card shadow-sm bg-light" style="border: 0px">
-                <div class="card-header pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
-                <div class="card-body">
-                    <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
+        <div class="card bg-light shadow-sm mb-2 ">
+            <div class="card-header"><h5>Настройки Расписания</h5></div>
+            <form class="card-body">
+                <fieldset class="form-group">
+                    <div class="row">
+                        <label class="col-auto">Доступность расписания</label>
+                        <div class="col-auto">
+                            <div class="form-check col-lg">
+                                <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="option1" checked>
+                                <label class="form-check-label" for="gridRadios1">Публичное</label>
+                            </div>
+                            <div class="form-check col-lg-2">
+                                    <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="option2">
+                                    <label class="form-check-label" for="gridRadios2">Приватное</label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div class="weekholder">
+            {% for i in range(7) %}
+            <div class="card bg-light shadow-sm">
+                <div class="card-header pb-1 text-center"><h5>{{weekdays[i]}}</h5></div>
+                <div class="card-body p-0">
+                    {% for j in range(9) %}
+                    <div class="input-group">
+                        <div class="input-group-prepend" style="border-radius: 0px">
+                            <span class="input-group-text" style="border-radius: 0px">{{j+1}}</span>
+                        </div>
+                        <input class="form-control" style="border-radius: 0px" type="text">
+                    </div>
+                    {% endfor %}
                 </div>
-                <div class="btn btn-outline-secondary" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</div>
             </div>
-        {% endif %}
+            {% endfor %}
+        </div>
     {% endif %}
 {% endblock content %}

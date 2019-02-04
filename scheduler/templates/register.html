@@ -1,0 +1,67 @@
+{% extends 'default_layout.html' %}
+{% block head %}
+    {{ super() }}
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #f8f8f8;
+        }
+        form {
+            width: 100%;
+            max-width: 380px;
+            min-width: 300px;
+        }
+        .form-control {
+            position: relative;
+            font-size: 24px;
+            height: auto;
+        }
+        .form-control:focus{
+            z-index: 2;
+        }
+        .username {
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
+        }
+        .password {
+            border-radius: 0px;
+            margin-top: -1px;
+        }
+        .confirmation {
+            border-top-left-radius: 0px;
+            border-top-right-radius: 0px;
+            margin-top: -1px;
+        }
+    </style>
+{% endblock %}
+{% block navbar %}{% endblock%}
+{% block container %}{% endblock %}
+{% block no_container %}
+    <form action="" method="post">
+        <h2 class="h2 mb-3">Регистрация</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{category}}">{{message}}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <input class="form-control username" type="text" name="username" placeholder="Логин" required autofocus>
+        <input class="form-control password" type="password" name="password" placeholder="Пароль" required>
+        <input class="form-control confirmation mb-3" type="password" name="confirmation" placeholder="Подтверждение пароля" required>
+        <div class="btn-group btn-block" role="group">
+            <input class="btn btn-primary btn-lg" style="width: 50%" type="submit" value="Готово">
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('home') }}" style="width: 50%">Позже</a>
+        </div>
+        <p class="text-center mt-3 text-muted">Уже есть аккаунт? <a class="text text-lg" href="{{url_for('login')}}">Войдите</a></p>
+
+    </form>
+</body>
+{% endblock %}
