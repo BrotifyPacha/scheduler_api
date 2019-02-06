@@ -40,6 +40,25 @@
             margin-top: -1px;
         }
     </style>
+    <script>
+    $(function readyFn(){
+        $('#username_input, #password_input, #confirmation_input').keyup(function buttonChecker() {
+            $('#done').attr('disabled', !fieldsChecker());
+        });
+    });
+    function fieldsChecker(){
+        var username = $('#username_input').val();
+        var password = $('#password_input').val();
+        var confirmation = $('#confirmation_input').val();
+
+        if (username.length < 1 || password.length < 1 || confirmation.length < 1) return false;
+        if (password != confirmation) return false;
+
+        if (username.match('[ab]+')) return false;
+
+        return true;
+    };
+    </script>
 {% endblock %}
 {% block navbar %}{% endblock%}
 {% block container %}{% endblock %}
@@ -53,15 +72,14 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <input class="form-control username" type="text" name="username" placeholder="Логин" required autofocus>
-        <input class="form-control password" type="password" name="password" placeholder="Пароль" required>
-        <input class="form-control confirmation mb-3" type="password" name="confirmation" placeholder="Подтверждение пароля" required>
+        <input class="form-control username" id="username_input" type="text" name="username" placeholder="Логин" autofocus>
+        <input class="form-control password" id="password_input" type="password" name="password" placeholder="Пароль">
+        <input class="form-control confirmation mb-3" id="confirmation_input" type="password" name="confirmation" placeholder="Подтверждение пароля">
         <div class="btn-group btn-block" role="group">
-            <input class="btn btn-primary btn-lg" style="width: 50%" type="submit" value="Готово">
+            <input class="btn btn-primary btn-lg" id="done" style="width: 50%" type="submit" value="Готово" disabled="true">
             <a class="btn btn-secondary btn-lg" href="{{ url_for('home') }}" style="width: 50%">Позже</a>
         </div>
         <p class="text-center mt-3 text-muted">Уже есть аккаунт? <a class="text text-lg" href="{{url_for('login')}}">Войдите</a></p>
-
     </form>
 </body>
 {% endblock %}
