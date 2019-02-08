@@ -42,8 +42,6 @@ def add_user():
         'username': username,
         'password': salted_password,
         'salt': salt,
-        'invited_to': [],
-        'subscribed_to': [],
         'firebase_id': firebase_id
     })
     user_id = str(inserted_user.inserted_id)
@@ -53,10 +51,10 @@ def add_user():
 @app.route('/api/users/<username>', methods=['GET'])
 def get_user(username):
     user = db.users.find_one({'username': username})
+
     if user is None:
         abort(404)
-    output = {'username': user['username'], 'firebase_id': user['firebase_id'], 'invited_to': user['invited_to'],
-              'subscribed_to': user['subscribed_to']}
+    output = {'username': user['username'], 'firebase_id': user['firebase_id']}
     return jsonify(output), 200  # response code - 200
 
 
@@ -180,8 +178,7 @@ def invite_user(alias, username):
         abort(404)
 
     # Проверяем есть ли пользователя права на приглашение других пользователей
-    if ObjectId(requesting_user_id) not in schedule['moderators'] and ObjectId(requesting_user_id) != schedule[
-        'creator']:
+    if ObjectId(requesting_user_id) not in schedule['moderators'] and ObjectId(requesting_user_id) != schedule['creator']:
         abort(401)
 
     if request.method == 'POST':
@@ -190,10 +187,8 @@ def invite_user(alias, username):
                 user['_id']) in schedule['invited_users']:
             return ''
         db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {'invited_users': ObjectId(user['_id'])}})
-        db.users.update_one({'_id': user['_id']}, {'$addToSet': {'invited_to': ObjectId(schedule['_id'])}})
     elif request.method == 'DELETE':
         db.schedules.update_one({'_id': schedule['_id']}, {'$pull': {'invited_users': ObjectId(user['_id'])}})
-        db.users.update_one({'_id': user['_id']}, {'$pull': {'invited_to': ObjectId(schedule['_id'])}})
     return ''
 
 
@@ -210,8 +205,6 @@ def accept_invitation(alias):
 
     db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {'invited_users': ObjectId(user_id)},
                                                                  '$addToSet': {'subscribed_users': ObjectId(user_id)}})
-    db.users.update_one({'_id': ObjectId(user_id)}, {'$pull': {'invited_to': ObjectId(schedule['_id'])},
-                                                     '$addToSet': {'subscribed_to': ObjectId(schedule['_id'])}})
     return ''
 
 
@@ -226,7 +219,6 @@ def reject_invitation(alias):
     if ObjectId(user_id) not in schedule['invited_users']:
         abort(404)
     db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {'invited_users': ObjectId(user_id)}})
-    db.users.update_one({'_id': ObjectId(user_id)}, {'$pull': {'invited_to': ObjectId(schedule['_id'])}})
     return ''
 
 
@@ -248,13 +240,10 @@ def subscribe_to_schedule(alias):
 
         db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {'subscribed_users': ObjectId(user_id)},
                                                            '$pull': {'invited_users': ObjectId(user_id)}})
-        db.users.update_one({'_id': ObjectId(user_id)}, {'$addToSet': {'subscribed_to': ObjectId(schedule['_id'])},
-                                                         '$pull': {'invited_to': ObjectId(schedule['_id'])}})
     elif request.method == 'DELETE':
         if ObjectId(user_id) in schedule['subscribed_users']:
             db.schedules.update_one({'_id': schedule['_id']}, {'$pull': {'subscribed_users': ObjectId(user_id),
                                                                          'moderators': ObjectId(user_id)}})
-            db.users.update_one({'_id': ObjectId(user_id)}, {'$pull': {'subscribed_to': ObjectId(schedule['_id'])}})
     return ''
 
 
@@ -278,4 +267,4 @@ def promote_user(alias, username):
                                     {'$addToSet': {'moderators': ObjectId(user['_id'])}})
         elif request.method == 'DELETE':
             db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
-                                    {'pull': {'moderators': ObjectId(user['_id'])}})
+                                    {'$pull': {'moderators': ObjectId(user['_id'])}})

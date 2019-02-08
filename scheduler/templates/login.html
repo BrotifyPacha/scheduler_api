@@ -1,22 +1,6 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <!-- bootstrap -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-    <!-- personal -->
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}"/>
-
-    {% if title %}
-        <title>{{title}}</title>
-    {% else %}
-        <title>Scheduler</title>
-    {% endif %}
-
+{% extends 'default_layout.html' %}
+{% block head %}
+    {{super()}}
     <style>
         html, body {
             height: 100%;
@@ -52,10 +36,21 @@
             margin-top: -1px;
         }
     </style>
-</head>
-<body class="container">
+    <script>
+    $(function readyFn(){
+        $('#username_input, #password_input').keyup(function(){
+            var username = $('#username_input').val();
+            var password = $('#password_input').val();
+            $('#done').attr('disabled', !(username.length > 0 && password.length > 0));
+        });
+    });
+    </script>
+{% endblock %}
+{% block navbar %}{% endblock %}
+{% block container %}{% endblock %}
+{% block no_container %}
     <form class="form" action="" method="post">
-        <h2 class="h2 mb-3">Вход</h2>
+        <h2 class="mb-3">Вход</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -63,13 +58,12 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <input class="form-control" type="text" name="username" placeholder="Логин" required autofocus>
-        <input class="form-control mb-3" type="password" name="password" placeholder="Пароль" required>
+        <input class="form-control" type="text" id="username_input" name="username" placeholder="Логин" required autofocus>
+        <input class="form-control mb-3" type="password" id="password_input" name="password" placeholder="Пароль" required>
         <div class="btn-group btn-block" role="group">
-            <input class="btn btn-primary btn-lg" style="width: 50%" type="submit" value="Войти">
+            <input class="btn btn-primary btn-lg" id="done" disabled style="width: 50%" type="submit" value="Войти">
             <a class="btn btn-secondary btn-lg" href="{{ url_for('home') }}" style="width: 50%">Позже</a>
         </div>
-        <p class="text-center mt-3 text-muted">Нет аккаунта? <a class="text text-lg" href="{{url_for('register')}}">Зарегистрируйтесь</a></p>
+        <p class="text-center mt-3 text-muted">Ещё нет аккаунта? <a class="text text-lg" href="{{url_for('register')}}">Зарегистрируйтесь</a></p>
     </form>
-</body>
-</html>
+{% endblock %}

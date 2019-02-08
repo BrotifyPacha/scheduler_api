@@ -42,29 +42,84 @@
     </style>
     <script>
     $(function readyFn(){
-        $('#username_input, #password_input, #confirmation_input').keyup(function buttonChecker() {
-            $('#done').attr('disabled', !fieldsChecker());
+        $('#username_input').keyup(function (){
+            $('#done').attr('disabled', !usernameChecker(true));
+        });
+        $('#password_input').keyup(function (){
+            $('#done').attr('disabled', !passwordChecker(true));
+        });
+        $('#confirmation_input').keyup(function (){
+            $('#done').attr('disabled', !passwordChecker(true));
         });
     });
-    function fieldsChecker(){
+    function usernameChecker(update){
         var username = $('#username_input').val();
+        $('.alert-username').detach();
+        if (username.length < 1){
+            if (update) $('#username_input').addClass('is-invalid').removeClass('is-valid');
+            return false;
+        }
+
+        if (/[^A-Za-z0-9_\.]+/.test(username)){
+            if (update){
+                $('#username_input').addClass('is-invalid').removeClass('is-valid');
+                $('.message-container')
+                    .attr('hidden', false)
+                    .append('<div class="alert alert-danger alert-username">Разрешены лишь символы латиницы (a-z), арабские цифры (0-9), "_" и "."</div>');
+            }
+            return false;
+        }
+
+        if (/.*(_{2}|\.{2})/.test(username)){
+            if (update){
+                $('#username_input').addClass('is-invalid').removeClass('is-valid');
+                $('.message-container')
+                    .attr('hidden', false)
+                    .append('<div class="alert alert-danger alert-username">Между двумя символами "_" или "." должна быть хотябы одна буква или цифра</div>');
+            }
+            return false;
+        }
+        if (update){
+            $('#username_input').removeClass('is-invalid').addClass('is-valid');
+            var password = $('#password_input').val();
+            var confirmation = $('#confirmation_input').val();
+            return password.length > 0 && password == confirmation;
+        }
+        return true;
+    };
+    function passwordChecker(update){
         var password = $('#password_input').val();
         var confirmation = $('#confirmation_input').val();
 
-        if (username.length < 1 || password.length < 1 || confirmation.length < 1) return false;
-        if (password != confirmation) return false;
+        if (password.length < 1) {
+            if (update) $('#password_input').addClass('is-invalid').removeClass('is-valid');
+            return false;
+        }
 
-        if (username.match('[ab]+')) return false;
+        if (update){
+            $('#password_input').removeClass('is-invalid').addClass('is-valid');
+        }
 
+        if (password != confirmation){
+            if (update) $('#confirmation_input').addClass('is-invalid').removeClass('is-valid');
+            return false;
+        }
+        if (update){
+            $('#confirmation_input').removeClass('is-invalid').addClass('is-valid');
+            return usernameChecker(false);
+        }
         return true;
-    };
+    }
     </script>
 {% endblock %}
 {% block navbar %}{% endblock%}
 {% block container %}{% endblock %}
 {% block no_container %}
     <form action="" method="post">
-        <h2 class="h2 mb-3">Регистрация</h2>
+        <h2 class="mb-3">Регистрация</h2>
+        <div class="message-container" hidden="true">
+
+        </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}

@@ -1,6 +1,8 @@
 from scheduler import app, db, auth
 from flask import render_template, request, session, redirect, url_for, abort, flash
 from pprint import pformat
+from bson.objectid import ObjectId
+import re
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -8,9 +10,23 @@ def register():
         username = request.form['username'].lower()
         password = request.form['password']
         confirmation = request.form['confirmation']
+
+        if (len(username) < 1):
+            flash('Логин должен иметь хотя бы один символ', 'danger')
+            return render_template('register.html', title='Регистрация')
+
+        if not re.match('[a-z0-9_.]+', username):
+            flash('Разрешены лишь символы латиницы (a-z), арабские цифры (0-9), подчёркивание "_"  и точка "."', 'danger')
+            return render_template('register.html', title='Регистрация')
+
+        if re.match('.*__.*', username):
+            flash('Между двумя символами "_" или "." должна быть хотябы одна буква или цифра', 'danger')
+            return render_template('register.html', title='Регистрация')
+
         if password != confirmation:
             flash('Введённые пароли не совпадают', 'warning')
             return render_template('register.html', title='Регистрация')
+
         if db.users.find_one({'username':username}) is not None:
             flash('Введённый логин уже зарегестрирован', 'danger')
             return render_template('register.html', title='Регистрация')
@@ -21,8 +37,6 @@ def register():
             'username': username,
             'password': salted_password,
             'salt': salt,
-            'invited_to': [],
-            'subscribed_to': [],
             'firebase_id': ''
         })
         user_id = str(inserted_user.inserted_id)
@@ -57,10 +71,13 @@ def logout():
 
 @app.route('/')
 def home():
-    cred = auth.check_session_for_token(session)
-    if bool(cred):
-        print(pformat(cred))
-        return render_template('main.html', user=cred['user'], schedules=cred['schedules'])
+    user_id = auth.check_session_for_token(session)
+    if user_id is not None:
+
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
+
+        return render_template('main.html', user=user, schedules=schedules)
     return render_template('main.html')
 
 @app.route('/schedules/<alias>')
@@ -69,9 +86,11 @@ def view_schedule(alias):
 
 @app.route('/schedules/create')
 def create_schedule():
-    cred = auth.check_session_for_token(session)
-    if bool(cred):
-        return render_template('create_schedule.html', title='Создание', user=cred['user'], schedules=cred['schedules'])
+    user_id = auth.check_session_for_token(session)
+    if user_id is not None:
+        user = db.users.find_one({'_id': ObjectId(user_id)})
+        schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
+        return render_template('create_schedule.html', title='Создание', user=user, schedules=schedules)
     else:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
     return redirect(url_for('home'))

@@ -4,15 +4,25 @@
         <!--h1>Ну привет, {{user['username']}}</h1-->
         {% if schedules[0] %}
             {% for schedule in schedules %}
-                <a href="{{ url_for('view_schedule', alias=schedule.alias)}}">{{schedule.name}}</a>
+                <div class="card shadow-sm bg-light mb-3" style="border: 0px">
+                    <a class="p-3 text-decoration-none" href="{{ url_for('view_schedule', alias=schedule.alias)}}">
+                        <h5 class="d-inline">{{schedule.name}}</h5>
+                        <h5 class="d-inline text-muted">@{{schedule.alias}}</h5>
+                    </a>
+                </div>
             {% endfor %}
+            <div class="card shadow-sm bg-light" style="border: 0px">
+                    <a class="btn btn-secondary p-3 text-decoration-none" href="{{url_for('create_schedule')}}">
+                        <h5 class="d-inline">Создать новое расписание</h5>
+                    </a>
+                </div>
         {% else %}
             <div class="card shadow-sm bg-light" style="border: 0px">
                 <div class="card-header pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
                 <div class="card-body">
                     <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
                 </div>
-                <a class="btn btn-outline-secondary" href="{{ url_for('create_schedule') }}" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</a>
+                <a class="btn btn-outline-secondary" href="{{ url_for('create_schedule')}}" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</a>
             </div>
         {% endif %}
     {% else %}
