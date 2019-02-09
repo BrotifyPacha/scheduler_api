@@ -2,11 +2,9 @@ from hashlib import sha3_512
 from os import urandom
 from base64 import b64encode
 import jwt
-import pymongo
 from bson.objectid import ObjectId
 
-client = pymongo.MongoClient("mongodb+srv://dbadmin:dbadminpassword@schedulercluster-3xudq.gcp.mongodb.net/dbadmin")
-db = client.scheduler_db
+from scheduler import db
 secret = 'aeX2bjauRpkQZLrKD4hTYb0RgjkB3zBW6lJVH9FROTA='
 
 

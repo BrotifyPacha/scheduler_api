@@ -1,6 +1,5 @@
 from scheduler import app, db, auth
-from flask import render_template, request, session, redirect, url_for, abort, flash
-from pprint import pformat
+from flask import render_template, request, session, redirect, url_for, flash
 from bson.objectid import ObjectId
 import re
 
@@ -73,10 +72,8 @@ def logout():
 def home():
     user_id = auth.check_session_for_token(session)
     if user_id is not None:
-
         user = db.users.find_one({'_id': ObjectId(user_id)})
         schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
-
         return render_template('main.html', user=user, schedules=schedules)
     return render_template('main.html')
 
