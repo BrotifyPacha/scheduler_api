@@ -74,18 +74,18 @@ def add_schedule():
     if db.schedules.find_one({'alias': alias}) is not None:
         abort(400)
 
-    privacy = request.args['privacy']
+    privacy = request.args['availability']
     if privacy not in ['private', 'public']:
         abort(400)
 
     schedule = literal_eval(request.args['schedule'])
-    first_week_start = request.args['first_week_start']
+    first_day = request.args['first_day']
 
     schedule_insert = db.schedules.insert_one({
         'name': name,
         'alias': alias,
-        'privacy': privacy,
-        'first_week_start': first_week_start,
+        'availability': privacy,
+        'first_day': first_day,
         'creator': ObjectId(user_id),
         'moderators': [],
         'invited_users': [],
@@ -102,15 +102,13 @@ def add_schedule():
 def manage_schedule(alias):
     # проверяем авторизован ли пользователь
     user_id = auth.check_authorization_header(request)
-    if user_id is None:
-        abort(401)
 
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None: abort(404)
 
     if request.method == 'GET':
-        privacy = schedule['privacy']
-        if privacy == 'private' and (ObjectId(user_id) not in schedule['subscribed_users'] or
+        availability = schedule['availability']
+        if availability == 'private' and (ObjectId(user_id) not in schedule['subscribed_users'] or
                                      ObjectId(user_id) not in schedule['moderators'] or
                                      ObjectId(user_id) != schedule[
                                          'creator']):  # str нужно чтобы избавиться от ObjectId типа
@@ -118,8 +116,8 @@ def manage_schedule(alias):
         output = {
             'name': schedule['name'],
             'alias': schedule['alias'],
-            'privacy': schedule['privacy'],
-            'first_week_start': schedule['first_week_start'],
+            'availability': schedule['availability'],
+            'first_day': schedule['first_day'],
             'creator': schedule['creator'],
             'moderators': schedule['moderators'],
             'invited_users': schedule['invited_users'],
@@ -143,20 +141,20 @@ def manage_schedule(alias):
             schedule['name'] = request.args['name']
         if 'alias' in request.args:
             schedule['alias'] = request.args['alias']
-        if 'privacy' in request.args:
-            if request.args['privacy'] not in ['private', 'public']:
+        if 'availability' in request.args:
+            if request.args['availability'] not in ['private', 'public']:
                 abort(400)
-            schedule['privacy'] = request.args['privacy']
-        if 'first_week_start' in request.args:
-            schedule['first_week_start'] = request.args['first_week_start']
+            schedule['availability'] = request.args['availability']
+        if 'first_day' in request.args:
+            schedule['first_day'] = request.args['first_day']
         if 'schedule' in request.args:
             schedule['schedule'] = request.args['schedule']
 
         db.schedules.update_one({'_id': schedule['_id']}, {'$set': {
             'name': schedule['name'],
             'alias': schedule['alias'],
-            'privacy': schedule['privacy'],
-            'first_week_start': schedule['first_week_start'],
+            'availability': schedule['availability'],
+            'first_day': schedule['first_day'],
             'creator': ObjectId(schedule['creator']),
             'moderators': schedule['moderators'],
             'invited_users': schedule['invited_users'],
@@ -233,7 +231,7 @@ def subscribe_to_schedule(alias):
         abort(404)
 
     if request.method == 'POST':
-        if schedule['privacy'] == 'private':
+        if schedule['availability'] == 'private':
             abort(404)
         if ObjectId(user_id) in schedule['subscribed_users']:
             return ''
@@ -268,3 +266,4 @@ def promote_user(alias, username):
         elif request.method == 'DELETE':
             db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
                                     {'$pull': {'moderators': ObjectId(user['_id'])}})
+

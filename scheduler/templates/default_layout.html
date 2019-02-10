@@ -8,7 +8,7 @@
     <!-- bootstrap -->
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}">
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='bootstrap-4.2.1/css/bootstrap.css')}}">
-    <script src="{{url_for('static', filename='jquery-3.2.1.slim.min.js')}}"></script>
+    <script src="{{url_for('static', filename='jquery-3.3.1.min.js')}}"></script>
     <script src="{{url_for('static', filename='bootstrap-4.2.1/js/bootstrap.bundle.js')}}"></script>
 
     {% if title %}
@@ -27,7 +27,7 @@
                 <img src="{{url_for('static', filename='menu_img.png')}}" style="height: 1.5em; width: 1.5em"/>
             </button>
             <div class="collapse navbar-collapse" id="collapse-menu">
-                <div class="form-inline ml-auto mr-auto">
+                <div class="form ml-auto mr-auto mt-2 mt-md-0">
                     <div class="input-group">
                         <input class="form-control" type="search" placeholder="Поиск" aria-label="Search">
                         <div class="input-group-append">
@@ -37,9 +37,9 @@
                 </div>
 
                 {% if user %}
-                    <div class="navbar-nav">
+                    <div class="navbar-nav mt-2 mt-md-0">
                         <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle mb-0 mt-2 my-md-0"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
+                            <a class="nav-link dropdown-toggle"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
                             <div class="dropdown-menu m-0">
                                 <a class="dropdown-item" href="#">Приглашения</a>
                                 <a class="dropdown-item" href="#">Настройки</a>
@@ -72,6 +72,8 @@
         {% block content %}{% endblock %}
         </div>
     {% endblock %}
+    <div class="p-3">
     {% block no_container %}{% endblock %}
+    </div>
 </body>
 </html>

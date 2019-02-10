@@ -4119,8 +4119,9 @@ input[type="button"].btn-block {
 .nav-tabs .nav-link.active,
 .nav-tabs .nav-item.show .nav-link {
   color: #495057;
-  background-color: #fff;
-  border-color: #dee2e6 #dee2e6 #fff;
+  /*background-color: #fff; мой коммент */
+  background-color: rgba(0, 0, 0, 0.03);
+  border-color: #dee2e6 #dee2e6 #f8f9fa;
 }
 
 .nav-tabs .dropdown-menu {

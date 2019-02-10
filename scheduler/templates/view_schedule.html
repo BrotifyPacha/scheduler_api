@@ -1,0 +1,53 @@
+{% extends 'default_layout.html '%}
+{% block head %}
+    {{super()}}
+    <style>
+        .dayholder{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        }
+
+        .nav-link.active {
+            color: #495057;
+            background-color: #dee2e6;
+            border-color: #dee2e6 #dee2e6 #dee2e6;
+        }
+    </style>
+{% endblock head%}
+{% block no_container %}
+    {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
+    <div class="container-fluid px-0 px-lg-5">
+        <div class="weekholder">
+            <nav class="weektabholder">
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                {% for i in range(schedule.schedule|length) %}
+                    <a class="nav-item nav-link p-2 px-3 mr-1 {% if i==0 %}active{%endif%}" id="nav-week-{{i+1}}" data-toggle="tab" href="#week-{{i+1}}" >
+                        <h6 class="mb-0">{{i+1}}-я</h6>
+                    </a>
+                {% endfor %}
+                </div>
+            </nav>
+            <div class="tab-content">
+            {% for w in range(schedule.schedule|length) %}
+                <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
+                    <div class="dayholder" >
+                    {% for d in range(schedule.schedule[w]|length) %}
+                        <div class="shadow-sm">
+                            <div class="card-header pb-1 text-center"><h6>{{weekdays[d]}}</h6></div>
+                            <ul class="card-body p-0 list-group">
+                                {% for l in range(schedule.schedule[w][d]|length) %}
+                                <li class="list-group-item d-flex justify-content-between py-1">
+                                    <div class="text-muted">{{l+1}}</div>
+                                    <div class="flex-grow-1 text-center">{{schedule.schedule[w][d][l]}}</div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock no_container %}

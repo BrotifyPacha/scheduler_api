@@ -1,6 +1,8 @@
 from scheduler import app, db, auth
 from flask import render_template, request, session, redirect, url_for, flash
 from bson.objectid import ObjectId
+from scheduler import utils
+from ast import literal_eval
 import re
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -79,15 +81,65 @@ def home():
 
 @app.route('/schedules/<alias>')
 def view_schedule(alias):
-    return alias
+    user_id = auth.check_session_for_token(session)
 
-@app.route('/schedules/create')
+    schedule = db.schedules.find_one({'alias': alias})
+    if schedule is None:
+        flash('Расписания по данной ссылке не найдено', 'danger')
+        return redirect(url_for('home'));
+
+    if schedule['availability'] == 'private':
+        if ObjectId(user_id) not in schedule['subscribed_users'] or ObjectId(user_id) != schedule['creator']:
+            flash('У вас нет доступа к этому расписанию, если вы считает что это ошибка, свяжитесь с его создателем и попросите выслать вам приглашение', 'warning')
+            return redirect(url_for('home'));
+
+
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    return render_template('view_schedule.html', title=schedule['name'], user=user, schedule=schedule)
+
+@app.route('/schedules/create', methods=['GET', 'POST'])
 def create_schedule():
     user_id = auth.check_session_for_token(session)
-    if user_id is not None:
-        user = db.users.find_one({'_id': ObjectId(user_id)})
-        schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
-        return render_template('create_schedule.html', title='Создание', user=user, schedules=schedules)
-    else:
+    if user_id is None:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
-    return redirect(url_for('home'))
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        if len(request.form['schedule_name']) < 1:
+            return {'error': 'Заполните поле "Название"'}
+
+        if len(request.form['schedule_name']) < 1:
+            return {'error': 'Заполните поле "Название"'}
+
+        schedule_name = request.form['schedule_name']
+        alias = utils.gen_schedule_alias()
+        if 'alias' in request.form:
+            alias = request.form['alias']
+            if len(alias) == 0:
+                alias = utils.gen_schedule_alias()
+            while db.schedules.find_one({'alias': alias}) is not None:
+                alias = utils.gen_schedule_alias()
+
+        availability = request.form['availability']
+        first_day = request.form['first_day']
+        schedule = literal_eval(request.form['schedule'])
+
+        schedule_insert = db.schedules.insert_one({
+            'name': schedule_name,
+            'alias': alias,
+            'availability': availability,
+            'first_day': first_day,
+            'creator': ObjectId(user_id),
+            'moderators': [],
+            'invited_users': [],
+            'subscribed_users': [ObjectId(user_id)],
+            'schedule': schedule,
+            'changes': []
+        })
+        db.users.update_one({'_id': ObjectId(user_id)},
+                            {"$addToSet": {'subscribed_to': ObjectId(schedule_insert.inserted_id)}})
+        return '', 201
+
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    return render_template('create_schedule.html', title='Создание', user=user)
+

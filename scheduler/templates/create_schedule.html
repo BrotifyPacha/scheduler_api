@@ -2,68 +2,228 @@
 {% block head %}
     {{ super() }}
     <style>
-        .weekholder{
+        .dayholder{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
         }
         .card {
-            border: 0px
+            border: 0px;
+            border-radius: 0px;
+        }
+        .card-body .form-control{
+            border-radius: 0px
+        }
+        .nav-tabs .nav-item {
+            display: inline-block;
+        }
+        .nav-tabs .nav-item card-header active {
+            background-color: f3f3f3;
         }
     </style>
-{% endblock %}
-{% block container %}
-    {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
-    {% if user %}
-        <div class="container-fluid">
-            <div class="card bg-light shadow-sm mb-2 ">
-                <div class="card-header"><h5>Настройки Расписания</h5></div>
-                <form class="card-body">
-                    <div class="row mb-3">
-                        <div class="input-group col-lg pb-3 pb-lg-0">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Название расписания</span>
-                            </div>
-                            <input class="form-control" id="schedulename" type="text" placeholder='Например "Расписание группы 406"'>
-                        </div>
-                        <div class="input-group col-lg">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">Сdсылка</span>
-                            </div>
-                            <input class="form-control" id="alias" type="text" placeholder='group-406'>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label for="privacy">Приватность расписания</label>
-                            <div class="input-group" id="privacy">
-                                <div class="form-check mr-3">
-                                    <input class="form-check-input" type="radio" name="privacy_check" id="public_check" value="option1" checked>
-                                    <label class="form-check-label" for="public_check">Публичное</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="privacy_check" id="private_check" value="option2">
-                                    <label class="form-check-label" for="private_check">Приватное</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <script>
+    $(function readyFn(){
+        $('#schedule_name').keyup(check_name)
+        $('#alias').change(check_alias)
+        $('#first_day').keyup(check_first_date)
 
-                </form>
-            </div>
-            <div class="weekholder">
-                {% for i in range(7) %}
-                <div class="card bg-light shadow-sm">
-                    <div class="card-header pb-1 text-center"><h6>{{weekdays[i]}}</h6></div>
-                    <div class="card-body p-0">
-                        {% for j in range(9) %}
-                        <div class="input-group" style="border-radius: 0px">
-                            <input class="form-control form-control-sm" style="border-radius: 0px" type="text" placeholder="{{j+1}}">
-                        </div>
-                        {% endfor %}
+        function check_button(){
+            if ($('#schedule_name').hasClass('is-valid') && $('#alias').hasClass('is-valid')){
+                if ($('#week_count').val()>0){
+                    if ($('#first_day').hasClass('is-valid')){
+                        return true
+                    }else{
+                        return false
+                    }
+                }
+                return true
+            }
+            return false
+        }
+
+        function check_name(){
+            var name = $('#schedule_name').val()
+            if (name.length > 0){
+                check_alias()
+                $('#schedule_name').addClass('is-valid').removeClass('is-invalid')
+            } else {
+                $('#done').attr('disabled', true)
+                $('#schedule_name').addClass('is-invalid').removeClass('is-valid')
+            }
+            $('#done').attr('disabled', !check_button())
+        }
+        function check_alias(){
+            var alias = $('#alias').val()
+            if (alias.length > 0){
+                if (!/^[A-Za-z0-9-_]+$/.test(alias)){
+                    $('#alias-feedback').empty().append('Используйте лишь символы латиницы (A-z), цифры (0-9), тире "-" и подчёркивание "_"')
+                    $('#alias').addClass('is-invalid').removeClass('is-valid')
+                }
+                $.get('/api/schedules/'+alias)
+                    .done(function(){
+                        $('#alias').addClass('is-invalid').removeClass('is-valid')
+                    })
+                    .fail(function(result){
+                        var name = $('#schedule_name').val()
+                        if (result.status == 404){ 
+                            $('#alias').addClass('is-valid').removeClass('is-invalid')
+                        }
+                    })
+            }
+            $('#alias').addClass('is-valid').removeClass('is-invalid')
+            $('#done').attr('disabled', !check_button())
+        }
+
+        function check_first_date (){
+            var date = $('#first_day').val()
+            if ( (date.length >= 3 && date[2] != ".") || (date.length >= 6 && date[5] != '.')){
+                $('#first_day').addClass('is-invalid').removeClass('is-valid')
+            }
+            if (/[\d]{2}\.[\d]{2}\.[\d]{2}/.test(date)){
+                $('#first_day').addClass('is-valid').removeClass('is-invalid')
+            }
+            $('#done').attr('disabled', !check_button())
+        }
+
+        $('#week_count').change(function(){
+            var week_count = $('#week_count').val()
+            $('.nav-item').removeClass('active show')
+            $('#nav-week-1').tab('show')
+            if (week_count > 0) {
+                $('#first_day_container').removeAttr('hidden')
+                $('.weektabholder').removeAttr('hidden')
+            } else {
+                $('#first_day_container').attr('hidden', '')
+                $('.weektabholder').attr('hidden', '')
+            }
+            for (var i=0; i<5; i++){
+                $('#nav-week-'+(i+1)).attr('hidden', !(i<=week_count))
+            }
+            $('#done').attr('disabled', !check_button())
+        })
+
+        $('#done').click(function(){
+            var schedule_name = $('#schedule_name').val()
+            var alias = $('#alias').val()
+            var availability = $('#availability').val()
+            var week_count = $('#week_count').val()
+            var first_day = $('#first_day').val()
+            var schedule = [];
+            
+            for (var w=0; w<week_count+1; w++){
+                var week = [];
+                if (w <= week_count ){
+                    for (var d=0; d<7; d++){
+                        var day = [];
+                        for (var l=0; l<9; l++){
+                            day.push($(`#lesson-${w}-${d}-${l}`).val())
+                        }
+                        week.push(day)
+                    }
+                } else {
+                    break;
+                }
+                schedule.push(week)
+            }
+            $.post('{{url_for('create_schedule')}}', {
+                'schedule_name':schedule_name,
+                'alias':alias,
+                'availability':availability,
+                'first_day':first_day,
+                'schedule': JSON.stringify(schedule)}).done(function(result){
+                    if (result.status == 201){
+                        window.location.replace("{{url_for('home')}}")
+                    }
+                });
+        })
+    })
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="card bg-light shadow-sm mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <b>Настройки Расписания</b>
+            <button class="btn btn-primary" id="done" disabled>Создать</button>
+        </div>
+        <div class="card-body">
+            <div class="row no-gutters mb-2">
+                <div class="input-group input-group-sm col-md mb-2 mb-md-0 mr-md-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Название</span>
                     </div>
+                    <input class="form-control" name="schedule_name" id="schedule_name" type="text" placeholder='Например "группа 406"'>
                 </div>
-                {% endfor %}
+                <div class="input-group input-group-sm col-md">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Ссылка</span>
+                    </div>
+                    <input class="form-control" name="alias" id="alias" type="text" placeholder='group-406'>
+                    <div class="invalid-feedback" id="alias-feedback">Данная ссылка занята, выберите другую или оставьте поле пустым, тогда ссылка выберется автоматически</div>
+                </div>
+            </div>
+            <div class="row no-gutters">
+                <div class="col-md input-group input-group-sm mb-2 mb-md-0 mr-md-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Доступность</span>
+                    </div>
+                    <select class="form-control" name="availability" id="availability">
+                        <option value="public">Публичное</option>
+                        <option value="private">Приватное</option>
+                    </select>
+                </div>
+                <div class="col-md input-group input-group-sm">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Кол-во недель</span>
+                    </div>
+                    <select class="form-control" name="week_count" id="week_count">
+                        <option value="0">Одна</option>
+                        <option value="1">Две</option>
+                        <option value="2">Три</option>
+                        <option value="3">Четыре</option>
+                        <option value="4">Пять</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row no-gutters mt-2" id="first_day_container" hidden>
+                <div class="col-md input-group input-group-sm">
+                    <div class="input-group-prepend">
+                        <p class="input-group-text">Дата начала учёбы</p>
+                    </div>
+                    <input class="form-control" name="first_day" id="first_day" type="text" maxlength="8" placeholder='Например 01.09.18'>
+                    <div class="invalid-feedback">Введите дату начала вашей первой недели обучения в формате дд.мм.гг</div>
+                </div>
             </div>
         </div>
-    {% endif %}
-{% endblock container %}
+    </div>
+{% endblock content %}
+{% block no_container %}
+    {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
+    <div class="container-fluid px-0 px-lg-5">
+        <div class="weekholder">
+            <nav class="weektabholder" hidden>
+                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                {% for i in range(5) %}
+                    <a class="nav-item nav-link p-2 px-3 mr-1 {% if i==0 %}active{%endif%}" id="nav-week-{{i+1}}" data-toggle="tab" href="#week-{{i+1}}" >
+                        <h6 class="mb-0">{{i+1}}-я</h6>
+                    </a>
+                {% endfor %}
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+            {% for w in range(5) %}
+                <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
+                    <div class="dayholder" >
+                    {% for i in range(7) %}
+                        <div class="shadow-sm">
+                            <div class="card-header pb-1 text-center"><h6>{{weekdays[i]}}</h6></div>
+                            <div class="card-body p-0">
+                                {% for j in range(9) %}<input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" style="" type="text" placeholder="{{j+1}}">{% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock no_container %}
