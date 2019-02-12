@@ -3,6 +3,17 @@ from flask import jsonify, request, abort, escape
 from bson.objectid import ObjectId
 from ast import literal_eval
 
+@app.route('/api/check_schedule_alias/<alias>', methods=['POST'])
+def check_schedule_alias(alias):
+    schedule = db.schedules.find_one({'alias': alias})
+    if 'schedule_id' not in request.form:
+        if  schedule is None: return jsonify({'result': 'error'}), 404
+        return jsonify({'result': 'success'}), 200
+    else:
+        schedule_id = request.form['schedule_id']
+        if schedule is None: return jsonify({'result': 'error'}), 404
+        if schedule['_id'] == ObjectId(schedule_id): return jsonify({'result': 'error'}), 404
+        return jsonify({'result': 'success'}), 200
 
 @app.route('/api/auth', methods=['POST'])
 def authorization():
@@ -93,8 +104,6 @@ def add_schedule():
         'schedule': schedule,
         'changes': []
     })
-    db.users.update_one({'_id': ObjectId(user_id)},
-                        {"$addToSet": {'subscribed_to': ObjectId(schedule_insert.inserted_id)}})
     return '', 201
 
 
@@ -102,6 +111,7 @@ def add_schedule():
 def manage_schedule(alias):
     # проверяем авторизован ли пользователь
     user_id = auth.check_authorization_header(request)
+    if user_id is None: abort(401)
 
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None: abort(404)
@@ -231,16 +241,16 @@ def subscribe_to_schedule(alias):
         abort(404)
 
     if request.method == 'POST':
-        if schedule['availability'] == 'private':
-            abort(404)
+        if schedule['availability'] == 'private' and (ObjectId(user_id) not in schedule['invited_users'] or ObjectId(user_id) != schedule['creator']):
+            abort(401)
         if ObjectId(user_id) in schedule['subscribed_users']:
             return ''
 
-        db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {'subscribed_users': ObjectId(user_id)},
+        db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$addToSet': {'subscribed_users': ObjectId(user_id)},
                                                            '$pull': {'invited_users': ObjectId(user_id)}})
     elif request.method == 'DELETE':
         if ObjectId(user_id) in schedule['subscribed_users']:
-            db.schedules.update_one({'_id': schedule['_id']}, {'$pull': {'subscribed_users': ObjectId(user_id),
+            db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {'subscribed_users': ObjectId(user_id),
                                                                          'moderators': ObjectId(user_id)}})
     return ''
 

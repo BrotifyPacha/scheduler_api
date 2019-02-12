@@ -1,9 +1,11 @@
 from scheduler import app, db, auth
-from flask import render_template, request, session, redirect, url_for, flash
+from flask import render_template, request, session, redirect, url_for, flash, jsonify
 from bson.objectid import ObjectId
 from scheduler import utils
 from ast import literal_eval
 import re
+
+error_schedule_not_found = 'Расписания по данной ссылке не существует'
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -79,13 +81,17 @@ def home():
         return render_template('main.html', user=user, schedules=schedules)
     return render_template('main.html')
 
+@app.route('/search/<query>', methods= ['GET'])
+def search(query):
+    return ''
+
 @app.route('/schedules/<alias>')
 def view_schedule(alias):
     user_id = auth.check_session_for_token(session)
 
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None:
-        flash('Расписания по данной ссылке не найдено', 'danger')
+        flash(error_schedule_not_found, 'warning')
         return redirect(url_for('home'));
 
     if schedule['availability'] == 'private':
@@ -102,27 +108,33 @@ def create_schedule():
     user_id = auth.check_session_for_token(session)
     if user_id is None:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
-        return redirect(url_for('home'))
+        return redirect(url_for('home')), 401
 
     if request.method == 'POST':
         if len(request.form['schedule_name']) < 1:
-            return {'error': 'Заполните поле "Название"'}
-
-        if len(request.form['schedule_name']) < 1:
-            return {'error': 'Заполните поле "Название"'}
+            return jsonify({'result': 'error', 'field': 'schedule_name'}), 400
 
         schedule_name = request.form['schedule_name']
         alias = utils.gen_schedule_alias()
         if 'alias' in request.form:
             alias = request.form['alias']
+            if db.schedules.find_one({'alias': alias}) is not None:
+                return jsonify({'result': 'error', 'field': 'alias'}), 400
             if len(alias) == 0:
                 alias = utils.gen_schedule_alias()
-            while db.schedules.find_one({'alias': alias}) is not None:
-                alias = utils.gen_schedule_alias()
+                while db.schedules.find_one({'alias': alias}) is not None:
+                    alias = utils.gen_schedule_alias()
 
         availability = request.form['availability']
+
+        if availability not in ['public', 'private']:
+            return jsonify({'result': 'error', 'field': 'availability'}), 400
+
         first_day = request.form['first_day']
         schedule = literal_eval(request.form['schedule'])
+
+        if len(schedule) > 1 and not re.match('\d{2}\.\d{2}\.\d{2}', first_day):
+            return jsonify({'result': 'error', 'field': 'first_day'}), 400
 
         schedule_insert = db.schedules.insert_one({
             'name': schedule_name,
@@ -136,10 +148,134 @@ def create_schedule():
             'schedule': schedule,
             'changes': []
         })
-        db.users.update_one({'_id': ObjectId(user_id)},
-                            {"$addToSet": {'subscribed_to': ObjectId(schedule_insert.inserted_id)}})
-        return '', 201
+        return jsonify({'result': 'success'}), 201
 
     user = db.users.find_one({'_id': ObjectId(user_id)})
-    return render_template('create_schedule.html', title='Создание', user=user)
+    return render_template('manage_schedule.html', title='Создание', user=user)
+
+@app.route('/schedules/<alias>/edit', methods=['GET', 'POST'])
+def edit_schedule(alias):
+    schedule = db.schedules.find_one({'alias': alias})
+    if schedule is None:
+        flash(error_schedule_not_found, 'warning')
+        return redirect(url_for('home')), 404
+
+    user_id = auth.check_session_for_token(session)
+    if user_id is None or (ObjectId(user_id) != schedule['creator'] and ObjectId(user_id) not in schedule['moderators']):
+        flash('Нехватает прав на редактирование этого расписания', 'danger')
+        return redirect(url_for('home')), 401
+
+    if request.method == 'POST':
+        schedule_id = request.form['schedule_id']
+        if len(request.form['schedule_name']) < 1:
+            return jsonify({'result': 'error', 'field': 'schedule_name'}), 400
+
+        schedule_name = request.form['schedule_name']
+        alias = utils.gen_schedule_alias()
+        if 'alias' in request.form:
+            alias = request.form['alias']
+            schedule = db.schedules.find_one({'alias': alias})
+            if schedule is not None and schedule['_id'] != ObjectId(schedule_id):
+                return jsonify({'result': 'error', 'field': 'alias'}), 400
+            if len(alias) == 0:
+                alias = utils.gen_schedule_alias()
+                while db.schedules.find_one({'alias': alias}) is not None:
+                    alias = utils.gen_schedule_alias()
+
+
+
+        availability = request.form['availability']
+
+        if availability not in ['public', 'private']:
+            return jsonify({'result': 'error', 'field': 'availability'}), 400
+
+        first_day = request.form['first_day']
+        schedule = literal_eval(request.form['schedule'])
+
+        if len(schedule) > 1 and not re.match('\d{2}\.\d{2}\.\d{2}', first_day):
+            return jsonify({'result': 'error', 'field': 'first_day'}), 400
+
+        schedule_update = db.schedules.update_one({'_id': ObjectId(schedule_id)}, { '$set':{
+            'name': schedule_name,
+            'alias': alias,
+            'availability': availability,
+            'first_day': first_day,
+            'creator': ObjectId(user_id),
+            'moderators': [],
+            'invited_users': [],
+            'subscribed_users': [ObjectId(user_id)],
+            'schedule': schedule,
+            'changes': []
+        }})
+        return jsonify({'result': 'success'}), 201
+
+        return
+
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    return render_template('manage_schedule.html', title='Редактирование', user=user, schedule=schedule)
+
+
+@app.route('/schedules/<alias>/delete', methods=['GET'])
+def delete_schedule(alias):
+    schedule = db.schedules.find_one({'alias': alias})
+    if schedule is None:
+        flash(error_schedule_not_found, 'warning')
+        return redirect(url_for('home'))
+
+    user_id = auth.check_session_for_token(session)
+    if user_id is None or ObjectId(user_id) != schedule['creator']:
+        flash('Нехватает прав на удаление этого расписания', 'danger')
+        return redirect(url_for('home'))
+
+    db.schedules.delete_one({'_id':schedule['_id']})
+    flash('Расписание "%s" было успешно удалено' % schedule['name'], 'success');
+    return redirect(url_for('home'))
+
+@app.route('/schedules/<alias>/subscribe', methods=['POST'])
+def subscribe(alias):
+    user_id = auth.check_session_for_token(session)
+    if user_id is None:
+        flash('Для того чтобы подписаться на расписание необходимо быть авторизовным')
+        return '', 401
+
+    schedule = db.schedules.find_one({'alias': alias})
+    if schedule is None:
+        flash(error_schedule_not_found, 'warning')
+        return '', 404
+
+    if schedule['availability'] == 'private' and (
+            ObjectId(user_id) not in schedule['invited_users'] or ObjectId(user_id) != schedule['creator']):
+        flash(
+            'Это приватное расписание и подписаться на него можно лишь получив приглашение от его модератора или создателя',
+            'warning')
+        return '', 401
+
+    if ObjectId(user_id) in schedule['subscribed_users']:
+        return '', 200
+
+    db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {{'subscribed_users': ObjectId(user_id)}},
+                                                       '$pull': {'invited_users': ObjectId(user_id)}})
+    return '', 200
+
+@app.route('/schedules/<alias>/unsubscribe', methods=['POST'])
+def unsubscribe(alias):
+    user_id = auth.check_session_for_token(session)
+    if user_id is None:
+        flash('Для того чтобы отписаться от расписания необходимо быть авторизовным')
+        return '', 401
+
+    schedule = db.schedules.find_one({'alias': alias})
+    if schedule is None:
+        flash(error_schedule_not_found, 'warning')
+        return '', 404
+
+    if ObjectId(user_id) not in schedule['subscribed_users']:
+        return '', 200
+
+    db.schedules.update_one({'_id': schedule['_id']}, {'$pull': {{'subscribed_users': ObjectId(user_id)},
+                                                                 {'moderators': ObjectId(user_id)}}})
+    return '', 200
+
+
+
 

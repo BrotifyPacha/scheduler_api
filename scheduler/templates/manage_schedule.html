@@ -24,6 +24,7 @@
     $(function readyFn(){
         $('#schedule_name').keyup(check_name)
         $('#alias').change(check_alias)
+        $('#week_count').change(check_week_count)
         $('#first_day').keyup(check_first_date)
 
         function check_button(){
@@ -46,10 +47,9 @@
                 check_alias()
                 $('#schedule_name').addClass('is-valid').removeClass('is-invalid')
             } else {
-                $('#done').attr('disabled', true)
                 $('#schedule_name').addClass('is-invalid').removeClass('is-valid')
             }
-            $('#done').attr('disabled', !check_button())
+            $('#done, #save').attr('disabled', !check_button())
         }
         function check_alias(){
             var alias = $('#alias').val()
@@ -58,19 +58,28 @@
                     $('#alias-feedback').empty().append('Используйте лишь символы латиницы (A-z), цифры (0-9), тире "-" и подчёркивание "_"')
                     $('#alias').addClass('is-invalid').removeClass('is-valid')
                 }
-                $.get('/api/schedules/'+alias)
-                    .done(function(){
-                        $('#alias').addClass('is-invalid').removeClass('is-valid')
+                {% if schedule %}
+                $.post('{{url_for('check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
+                {% else %}
+                $.post('{{url_for('check_schedule_alias', alias='')}}'+alias,
+                {% endif %}
+                    function(result){
+                        console.log(result);
+                        if (result['result'] == 'success'){
+                            $('#alias').addClass('is-invalid').removeClass('is-valid')
+                            $('#done, #save').attr('disabled', !check_button())
+                            return
+                        }
+
                     })
                     .fail(function(result){
-                        var name = $('#schedule_name').val()
-                        if (result.status == 404){ 
+                        if (result.status == 404){
                             $('#alias').addClass('is-valid').removeClass('is-invalid')
+                            $('#done, #save').attr('disabled', !check_button())
+                            return
                         }
                     })
             }
-            $('#alias').addClass('is-valid').removeClass('is-invalid')
-            $('#done').attr('disabled', !check_button())
         }
 
         function check_first_date (){
@@ -81,10 +90,11 @@
             if (/[\d]{2}\.[\d]{2}\.[\d]{2}/.test(date)){
                 $('#first_day').addClass('is-valid').removeClass('is-invalid')
             }
-            $('#done').attr('disabled', !check_button())
+            $('#done, #save').attr('disabled', !check_button())
         }
 
-        $('#week_count').change(function(){
+
+        function check_week_count(){
             var week_count = $('#week_count').val()
             $('.nav-item').removeClass('active show')
             $('#nav-week-1').tab('show')
@@ -98,8 +108,8 @@
             for (var i=0; i<5; i++){
                 $('#nav-week-'+(i+1)).attr('hidden', !(i<=week_count))
             }
-            $('#done').attr('disabled', !check_button())
-        })
+            $('#done, #save').attr('disabled', !check_button())
+        }
 
         $('#done').click(function(){
             var schedule_name = $('#schedule_name').val()
@@ -108,7 +118,7 @@
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
             var schedule = [];
-            
+
             for (var w=0; w<week_count+1; w++){
                 var week = [];
                 if (w <= week_count ){
@@ -129,28 +139,105 @@
                 'alias':alias,
                 'availability':availability,
                 'first_day':first_day,
-                'schedule': JSON.stringify(schedule)}).done(function(result){
-                    if (result.status == 201){
-                        window.location.replace("{{url_for('home')}}")
+                'schedule': JSON.stringify(schedule)}, function(result){
+                    if (result['result'] == 'success'){
+                        window.location.replace('{{url_for('home')}}')
                     }
-                });
+                })
+                .always(function(result){
+                    if (result.status == 400){
+                        $('#'+result.responseJSON['field']).addClass('is-invalid').removeClass('is-valid')
+                    }
+                    if (result.status == 401){
+                        window.location.replace('{{url_for('home')}}')
+                    }
+                })
         })
+        {% if schedule %}
+        $('#save').click(
+        function(){
+            var schedule_name = $('#schedule_name').val()
+            var alias = $('#alias').val()
+            var availability = $('#availability').val()
+            var week_count = $('#week_count').val()
+            var first_day = $('#first_day').val()
+            var schedule = [];
+            for (var w=0; w<week_count+1; w++){
+                var week = [];
+                if (w <= week_count ){
+                    for (var d=0; d<7; d++){
+                        var day = [];
+                        for (var l=0; l<9; l++){
+                            day.push($(`#lesson-${w}-${d}-${l}`).val())
+                        }
+                        week.push(day)
+                    }
+                } else {
+                    break;
+                }
+                schedule.push(week)
+            }
+            $.post('{{url_for('edit_schedule', alias=schedule.alias)}}', {
+                'schedule_id': $('.schedule').attr('id'),
+                'schedule_name':schedule_name,
+                'alias':alias,
+                'availability':availability,
+                'first_day':first_day,
+                'schedule': JSON.stringify(schedule)},
+                function(result){
+                    if (result['result'] == 'success'){
+                        window.location.replace('{{url_for('home')}}')
+                    }
+                })
+                .always(function(result){
+                    if (result.status == 400){
+                        $('#'+result.responseJSON['field']).addClass('is-invalid').removeClass('is-valid')
+                    }
+                    if (result.status == 401){
+                        window.location.replace('{{url_for('home')}}')
+                    }
+                })
+
+        })
+
+        $('#schedule_name').val('{{schedule.name}}')
+        $('#alias').val('{{schedule.alias}}')
+        $('#first_day').val('{{schedule.first_day}}')
+        $('#week_count').val('{{schedule.shedule|length+1}}')
+        $('#availability').val('{{schedule.availability}}')
+
+        check_name()
+        check_alias()
+        check_first_date()
+        check_week_count()
+
+        {% endif %}
     })
     </script>
 {% endblock %}
 {% block content %}
     <div class="card bg-light shadow-sm mb-2">
+        {%if schedule %}
+        <div class="schedule" id="{{schedule['_id']}}" hidden></div>
+        {%endif%}
         <div class="card-header d-flex justify-content-between align-items-center">
             <b>Настройки Расписания</b>
+            {% if schedule%}
+            <div class="btn-group">
+                <a class="btn btn-secondary" id="cancel" href="{{url_for('home')}}">Отмена</a>
+                <button class="btn btn-primary" id="save">Сохранить</button>
+            </div>
+            {% else %}
             <button class="btn btn-primary" id="done" disabled>Создать</button>
+            {% endif %}
         </div>
         <div class="card-body">
             <div class="row no-gutters mb-2">
-                <div class="input-group input-group-sm col-md mb-2 mb-md-0 mr-md-2">
+                <div class="input-group align-items-start input-group-sm col-md mb-2 mb-md-0 mr-md-2">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Название</span>
                     </div>
-                    <input class="form-control" name="schedule_name" id="schedule_name" type="text" placeholder='Например "группа 406"'>
+                    <input class="form-control" name="schedule_name" id="schedule_name" type="text" placeholder='Например "группа 406"' autofocus>
                 </div>
                 <div class="input-group input-group-sm col-md">
                     <div class="input-group-prepend">
@@ -175,11 +262,11 @@
                         <span class="input-group-text">Кол-во недель</span>
                     </div>
                     <select class="form-control" name="week_count" id="week_count">
-                        <option value="0">Одна</option>
-                        <option value="1">Две</option>
-                        <option value="2">Три</option>
-                        <option value="3">Четыре</option>
-                        <option value="4">Пять</option>
+                        <option value="0" >Одна</option>
+                        <option value="1" >Две</option>
+                        <option value="2" >Три</option>
+                        <option value="3" >Четыре</option>
+                        <option value="4" >Пять</option>
                     </select>
                 </div>
             </div>
@@ -216,7 +303,9 @@
                         <div class="shadow-sm">
                             <div class="card-header pb-1 text-center"><h6>{{weekdays[i]}}</h6></div>
                             <div class="card-body p-0">
-                                {% for j in range(9) %}<input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" style="" type="text" placeholder="{{j+1}}">{% endfor %}
+                                {% for j in range(9) %}
+                                    <input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" style="" type="text" placeholder="{{j+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][i][j]}}"{%endif%}>
+                                {% endfor %}
                             </div>
                         </div>
                     {% endfor %}

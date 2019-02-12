@@ -1,9 +1,8 @@
 import pymongo
+import pytz
 
-client = pymongo.MongoClient("mongodb+srv://dbadmin:dbadminpassword@schedulercluster-3xudq.gcp.mongodb.net/dbadmin")
-db = client.scheduler_db
+#client = pymongo.MongoClient("mongodb+srv://dbadmin:dbadminpassword@schedulercluster-3xudq.gcp.mongodb.net/dbadmin")
+#db = client.scheduler_db
 
-def testfunc():
-    return 'a','b'
-
-print(testfunc())
+print(pytz.all_timezones)
+print('a')

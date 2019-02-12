@@ -6,14 +6,21 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
         }
-
         .nav-link.active {
             color: #495057;
             background-color: #dee2e6;
             border-color: #dee2e6 #dee2e6 #dee2e6;
         }
     </style>
+    <script>
+        $(fucntion readyFn(){
+            today = new Date();
+        })
+    </script>
 {% endblock head%}
+{% block content %}
+    <div class="h5">{{schedule.name}}</div>
+{% endblock content %}
 {% block no_container %}
     {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
     <div class="container-fluid px-0 px-lg-5">
