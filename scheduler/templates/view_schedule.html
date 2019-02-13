@@ -6,14 +6,25 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
         }
+        .lessonholder{
+            display: grid;
+            grid-template-rows: repeat(9, 0.45fr);
+        }
+        .test{
+            display: grid;
+            grid-template-rows: 13fr 87fr;
+        }
         .nav-link.active {
             color: #495057;
             background-color: #dee2e6;
             border-color: #dee2e6 #dee2e6 #dee2e6;
         }
+        .list-group, .list-group-item {
+            border-radius: 0px !important;
+        }
     </style>
     <script>
-        $(fucntion readyFn(){
+        $(function readyFn(){
             today = new Date();
         })
     </script>
@@ -39,16 +50,16 @@
                 <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
                     <div class="dayholder" >
                     {% for d in range(schedule.schedule[w]|length) %}
-                        <div class="shadow-sm">
+                        <div class="test">
                             <div class="card-header pb-1 text-center"><h6>{{weekdays[d]}}</h6></div>
-                            <ul class="card-body p-0 list-group">
+                            <div class="lessonholder list-group">
                                 {% for l in range(schedule.schedule[w][d]|length) %}
-                                <li class="list-group-item d-flex justify-content-between py-1">
+                                <div class="d-flex align-items-center list-group-item py-1 px-3">
                                     <div class="text-muted">{{l+1}}</div>
                                     <div class="flex-grow-1 text-center">{{schedule.schedule[w][d][l]}}</div>
-                                </li>
+                                </div>
                                 {% endfor %}
-                            </ul>
+                            </div>
                         </div>
                     {% endfor %}
                     </div>

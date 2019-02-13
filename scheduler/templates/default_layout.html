@@ -19,21 +19,23 @@
     {% endblock %}
 </head>
 <body>
+    {% block modals %}
+    {% endblock modals %}
     {% block navbar %}
     <nav class="shadow-sm navbar navbar-expand-md bg-light mb-3">
         <div class="container">
             <a class="navbar-brand" href="{{url_for('home')}}"><b>Scheduler</b></a>
             <button class="navbar-toggler btn btn-primary btn-sm my-1" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">
-                <img src="{{url_for('static', filename='menu_img.png')}}" style="height: 1.5em; width: 1.5em"/>
+                <img src="{{url_for('static', filename='menu_img.png')}}" style="height: 1em; width: 1em"/>
             </button>
             <div class="collapse navbar-collapse" id="collapse-menu">
                 <div class="form ml-auto mr-auto mt-2 mt-md-0">
-                    <div class="input-group">
-                        <input class="form-control" type="search" placeholder="Поиск" aria-label="Search">
+                    <form action="{{url_for('search')}}" method="post" class="input-group">
+                        <input class="form-control" name="query" type="search" placeholder="Поиск" aria-label="Search">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary input-group-button">Искать</button>
                         </div>
-                    </div>
+                    </form>
                 </div>
 
                 {% if user %}

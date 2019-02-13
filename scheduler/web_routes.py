@@ -78,12 +78,34 @@ def home():
     if user_id is not None:
         user = db.users.find_one({'_id': ObjectId(user_id)})
         schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
-        return render_template('main.html', user=user, schedules=schedules)
-    return render_template('main.html')
+        return render_template('home.html', user=user, schedules=schedules)
+    return render_template('home.html')
+
+
+@app.route('/search/', methods= ['POST'])
+def search():
+    if 'query' in request.form:
+        query = request.form['query']
+    return redirect(url_for('search_with', query=query))
 
 @app.route('/search/<query>', methods= ['GET'])
-def search(query):
-    return ''
+def search_with(query):
+    user_id = auth.check_session_for_token(session)
+    print(query)
+    schedules = db.schedules.find(
+        {
+            '$and': [
+                {'availability': 'public'},
+                {'$or': [
+                    {'alias': query},
+                    {'name': query}
+                ]}
+            ]
+        })
+    if user_id is None:
+        return render_template('search_result.html', title='Поиск', schedules=schedules)
+    user = db.users.find_one({'_id':ObjectId(user_id)})
+    return render_template('search_result.html', title='Поиск', schedules=schedules, user=user)
 
 @app.route('/schedules/<alias>')
 def view_schedule(alias):
@@ -215,17 +237,17 @@ def edit_schedule(alias):
     return render_template('manage_schedule.html', title='Редактирование', user=user, schedule=schedule)
 
 
-@app.route('/schedules/<alias>/delete', methods=['GET'])
+@app.route('/schedules/<alias>/delete', methods=['POST'])
 def delete_schedule(alias):
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None:
         flash(error_schedule_not_found, 'warning')
-        return redirect(url_for('home'))
+        return redirect(url_for('home')), 404
 
     user_id = auth.check_session_for_token(session)
     if user_id is None or ObjectId(user_id) != schedule['creator']:
         flash('Нехватает прав на удаление этого расписания', 'danger')
-        return redirect(url_for('home'))
+        return redirect(url_for('home')), 401
 
     db.schedules.delete_one({'_id':schedule['_id']})
     flash('Расписание "%s" было успешно удалено' % schedule['name'], 'success');
