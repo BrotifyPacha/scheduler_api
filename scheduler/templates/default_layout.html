@@ -17,20 +17,79 @@
         <title>Scheduler</title>
     {% endif %}
     {% endblock %}
+
+    {% block schedule_menu_modal_script %}
+    <script>
+        $(function readyFn(){
+            $('#confirmation-modal').on('show.bs.modal', function(event){
+                var btn = event.relatedTarget
+                var alias = btn.dataset['scheduleAlias']
+                var name = btn.dataset['scheduleName']
+                var action = btn.dataset['action']
+                if (action == 'delete')
+                    var title = `Вы уверены что хотите удалить расписание "${name}"?`;
+                else var title = `Вы уверены что хотите отписаться от расписания "${name}"?`;
+
+                $('#modal-title').empty()
+                $('#modal-title').append(title)
+                $('#modal-confirm').empty()
+                $('#modal-confirm').append(action == 'delete' ? 'Удалить' : 'Отписаться')
+
+                $('#modal-confirm').click(function(){
+                    if (action == 'delete'){
+                        $.post('{{url_for('web.delete_schedule', alias='alias')}}'.replace('alias', alias), function(){
+                            window.location.replace('{{url_for('web.home')}}')
+
+                        }).fail(function(result){
+                            window.location.replace('{{url_for('web.home')}}')
+                        })
+                    }
+                    if (action == 'unsubscribe'){
+                        $.post('{{url_for('web.unsubscribe', alias='alias')}}'.replace('alias', alias), function(){
+                            window.location.replace('{{url_for('web.home')}}')
+
+                        }).fail(function(result){
+                            window.location.replace('{{url_for('web.home')}}')
+                        })
+                    }
+                })
+
+            })
+        })
+    </script>
+    {% endblock schedule_menu_modal_script %}
+
 </head>
 <body>
-    {% block modals %}
-    {% endblock modals %}
+    {% block schedule_menu_modal %}
+    <div class="modal fade" id="confirmation-modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="modal-title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
+                    <button class="btn btn-danger" id="modal-confirm"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock schedule_menu_modal %}
+    {% block modals %}{% endblock modals %}
     {% block navbar %}
     <nav class="shadow-sm navbar navbar-expand-md bg-light mb-3">
         <div class="container">
-            <a class="navbar-brand" href="{{url_for('home')}}"><b>Scheduler</b></a>
+            <a class="navbar-brand" href="{{url_for('web.home')}}"><b>Scheduler</b></a>
             <button class="navbar-toggler btn btn-primary btn-sm my-1" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">
                 <img src="{{url_for('static', filename='menu_img.png')}}" style="height: 1em; width: 1em"/>
             </button>
             <div class="collapse navbar-collapse" id="collapse-menu">
                 <div class="form ml-auto mr-auto mt-2 mt-md-0">
-                    <form action="{{url_for('search')}}" method="post" class="input-group">
+                    <form action="{{url_for('web.search')}}" method="post" class="input-group">
                         <input class="form-control" name="query" type="search" placeholder="Поиск" aria-label="Search">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary input-group-button">Искать</button>
@@ -46,14 +105,14 @@
                                 <a class="dropdown-item" href="#">Приглашения</a>
                                 <a class="dropdown-item" href="#">Настройки</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{url_for('logout')}}">Выйти</a>
+                                <a class="dropdown-item" href="{{url_for('web.logout')}}">Выйти</a>
                             </div>
                         </div>
                     </div>
                 {% else %}
                 <div class="mt-3 mb-1 my-md-0">
-                    <a class="mr-3" href="{{url_for('login')}}">Войти</a>
-                    <a href="{{url_for('register')}}">Зарегистрироваться</a>
+                    <a class="mr-3" href="{{url_for('web.login')}}">Войти</a>
+                    <a href="{{url_for('web.register')}}">Зарегистрироваться</a>
                 </div>
                 {% endif %}
             </div>

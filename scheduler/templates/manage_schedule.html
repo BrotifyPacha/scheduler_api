@@ -59,9 +59,9 @@
                     $('#alias').addClass('is-invalid').removeClass('is-valid')
                 }
                 {% if schedule %}
-                $.post('{{url_for('check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
+                $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
                 {% else %}
-                $.post('{{url_for('check_schedule_alias', alias='')}}'+alias,
+                $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias,
                 {% endif %}
                     function(result){
                         console.log(result);
@@ -134,14 +134,14 @@
                 }
                 schedule.push(week)
             }
-            $.post('{{url_for('create_schedule')}}', {
+            $.post('{{url_for('web.create_schedule')}}', {
                 'schedule_name':schedule_name,
                 'alias':alias,
                 'availability':availability,
                 'first_day':first_day,
                 'schedule': JSON.stringify(schedule)}, function(result){
                     if (result['result'] == 'success'){
-                        window.location.replace('{{url_for('home')}}')
+                        window.location.replace('{{url_for('web.home')}}')
                     }
                 })
                 .always(function(result){
@@ -149,7 +149,7 @@
                         $('#'+result.responseJSON['field']).addClass('is-invalid').removeClass('is-valid')
                     }
                     if (result.status == 401){
-                        window.location.replace('{{url_for('home')}}')
+                        window.location.replace('{{url_for('web.home')}}')
                     }
                 })
         })
@@ -177,7 +177,7 @@
                 }
                 schedule.push(week)
             }
-            $.post('{{url_for('edit_schedule', alias=schedule.alias)}}', {
+            $.post('{{url_for('web.edit_schedule', alias=schedule.alias)}}', {
                 'schedule_id': $('.schedule').attr('id'),
                 'schedule_name':schedule_name,
                 'alias':alias,
@@ -186,7 +186,7 @@
                 'schedule': JSON.stringify(schedule)},
                 function(result){
                     if (result['result'] == 'success'){
-                        window.location.replace('{{url_for('home')}}')
+                        window.location.replace('{{url_for('web.home')}}')
                     }
                 })
                 .always(function(result){
@@ -194,7 +194,7 @@
                         $('#'+result.responseJSON['field']).addClass('is-invalid').removeClass('is-valid')
                     }
                     if (result.status == 401){
-                        window.location.replace('{{url_for('home')}}')
+                        window.location.replace('{{url_for('web.home')}}')
                     }
                 })
 
@@ -224,7 +224,7 @@
             <b>Настройки Расписания</b>
             {% if schedule%}
             <div class="btn-group">
-                <a class="btn btn-secondary" id="cancel" href="{{url_for('home')}}">Отмена</a>
+                <a class="btn btn-secondary" id="cancel" href="{{url_for('web.home')}}">Отмена</a>
                 <button class="btn btn-primary" id="save">Сохранить</button>
             </div>
             {% else %}

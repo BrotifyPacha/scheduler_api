@@ -62,8 +62,8 @@
         <input class="form-control mb-3" type="password" id="password_input" name="password" placeholder="Пароль" required>
         <div class="btn-group btn-block" role="group">
             <input class="btn btn-primary btn-lg" id="done" disabled style="width: 50%" type="submit" value="Войти">
-            <a class="btn btn-secondary btn-lg" href="{{ url_for('home') }}" style="width: 50%">Позже</a>
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('web.home') }}" style="width: 50%">Позже</a>
         </div>
-        <p class="text-center mt-3 text-muted">Ещё нет аккаунта? <a class="text text-lg" href="{{url_for('register')}}">Зарегистрируйтесь</a></p>
+        <p class="text-center mt-3 text-muted">Ещё нет аккаунта? <a class="text text-lg" href="{{url_for('web.register')}}">Зарегистрируйтесь</a></p>
     </form>
 {% endblock %}
