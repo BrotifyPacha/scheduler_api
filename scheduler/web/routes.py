@@ -93,14 +93,15 @@ def search():
 @web.route('/search/<query>', methods= ['GET'])
 def search_with(query):
     user_id = auth.check_session_for_token(session)
-    print(query)
+    search_query_regex = '.*(%s).*' % query
+    print(search_query_regex)
     schedules = db.schedules.find(
         {
             '$and': [
                 {'availability': 'public'},
                 {'$or': [
-                    {'alias': query},
-                    {'name': query}
+                    {'alias': { '$regex': search_query_regex, '$options': 'i' }},
+                    {'name': { '$regex': search_query_regex, '$options': 'i' }}
                 ]}
             ]
         })
@@ -281,13 +282,14 @@ def subscribe(alias):
     if ObjectId(user_id) in schedule['subscribed_users']:
         return '', 200
 
-    db.schedules.update_one({'_id': schedule['_id']}, {'$addToSet': {{'subscribed_users': ObjectId(user_id)}},
+    db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$addToSet': {{'subscribed_users': ObjectId(user_id)}},
                                                        '$pull': {'invited_users': ObjectId(user_id)}})
     return '', 200
 
 @web.route('/schedules/<alias>/unsubscribe', methods=['POST'])
 def unsubscribe(alias):
     user_id = auth.check_session_for_token(session)
+    print(user_id)
     if user_id is None:
         flash('Для того чтобы отписаться от расписания необходимо быть авторизовным')
         return '', 401
@@ -300,6 +302,8 @@ def unsubscribe(alias):
     if ObjectId(user_id) not in schedule['subscribed_users']:
         return '', 200
 
-    db.schedules.update_one({'_id': schedule['_id']}, {'$pull': {{'subscribed_users': ObjectId(user_id)},
-                                                                 {'moderators': ObjectId(user_id)}}})
+    db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {
+                                                                        'subscribed_users': ObjectId(user_id),
+                                                                        'moderators': ObjectId(user_id)
+                                                                    }})
     return '', 200

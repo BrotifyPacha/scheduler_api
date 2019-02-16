@@ -18,7 +18,7 @@
     {% endif %}
     {% endblock %}
 
-    {% block schedule_menu_modal_script %}
+    {% block schedule_menu_script %}
     <script>
         $(function readyFn(){
             $('#confirmation-modal').on('show.bs.modal', function(event){
@@ -55,9 +55,10 @@
                 })
 
             })
+
         })
     </script>
-    {% endblock schedule_menu_modal_script %}
+    {% endblock schedule_menu_script %}
 
 </head>
 <body>

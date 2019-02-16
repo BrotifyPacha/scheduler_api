@@ -1,3 +1,16 @@
-{% macro schedule_controle_menu(user, schedule)%}
-
+{% macro schedule_control_menu(user, schedule, is_small)%}
+    {% if is_small %}<div class="btn-group-vertical d-block">{% endif %}
+        {% if user['_id'] in schedule['subscribed_users'] %}
+        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</button>
+        {% else %}
+        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-success" id="subscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Подписаться</button>
+        {% endif %}
+        {% if user['_id'] == schedule['creator'] or user['_id'] in schedule['moderators'] %}
+        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-primary">Изменение на дату</button>
+        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-primary" id="schedule_edit" href="{{url_for('web.edit_schedule', alias=schedule.alias)}}">Редактировать</button>
+        {%endif%}
+        {% if user['_id'] == schedule['creator'] %}
+        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</button>
+        {%endif%}
+    {% if is_small %}</div>{% endif %}
 {% endmacro %}

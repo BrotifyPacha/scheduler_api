@@ -252,8 +252,9 @@ def subscribe_to_schedule(alias):
                                                            '$pull': {'invited_users': ObjectId(user_id)}})
     elif request.method == 'DELETE':
         if ObjectId(user_id) in schedule['subscribed_users']:
-            db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {'subscribed_users': ObjectId(user_id),
-                                                                         'moderators': ObjectId(user_id)}})
+            db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$pull': {
+                                                                            'subscribed_users': ObjectId(user_id),
+                                                                            'moderators': ObjectId(user_id)}})
     return ''
 
 

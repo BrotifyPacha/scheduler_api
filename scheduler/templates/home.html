@@ -13,7 +13,7 @@
         }
     </style>
 {% endblock head %}
-{% block schedule_menu_modal_script %}{{super()}}{% endblock schedule_menu_modal_script %}
+{% block schedule_menu_script %}{{super()}}{% endblock schedule_menu_script %}
 {% block schedule_menu_modal %}{{super()}}{% endblock schedule_menu_modal %}
 {% block content %}
     {% if user %}
@@ -25,7 +25,7 @@
                         <div>{{schedule.name}}{%if schedule.name|length > 50%}...{%endif%}</div>
                         <div class="text-muted">@{{schedule.alias}}</div>
                     </a>
-
+                    {% import 'macros.html' as macros%}
                     <div class="navbar-expand-xl">
                         <div class="dropdown navbar-toggler">
                             <div class="dropdown">
@@ -34,25 +34,13 @@
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right p-0 shadow" aria-labelledby="#dropdownMenuLink">
                                     <div class="btn-group-vertical d-block">
-                                        {% if user['_id'] == schedule['creator'] %}
-                                        <a class="d-block btn btn-outline-primary" href="#">Добавить изменение</a>
-                                        <a class="d-block btn btn-outline-primary" href="{{url_for('web.edit_schedule', alias=schedule.alias)}}">Редактировать</a>
-                                        <button class="btn btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</button>
-                                        {% else %}
-                                        <button class="btn btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</button>
-                                        {% endif %}
+                                        {{ macros.schedule_control_menu(user=user, schedule=schedule, is_small=False) }}
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="btn-group mr-3 control-menu" id="control-menu">
-                            {% if user['_id'] == schedule['creator'] %}
-                            <a class="btn btn-sm btn-outline-primary" href="#">Добавить изменение</a>
-                            <a class="btn btn-sm btn-outline-primary" href="{{url_for('web.edit_schedule', alias=schedule.alias)}}">Редактировать</a>
-                            <button class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</button>
-                            {% else %}
-                            <button class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</button>
-                            {% endif %}
+                            {{ macros.schedule_control_menu(user=user, schedule=schedule, is_small=True) }}
                         </div>
                     </div>
                 </div>
