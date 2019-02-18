@@ -2,15 +2,15 @@
 {% block head%}
     {{super()}}
     <style>
-        #control-menu {
-                display: none;
-        }
         /*xl break-point*/
-        @media (min-width: 1200px){
-            #schedule:hover #control-menu {
-                display: flex;
-            }
+    @media (min-width: 1200px){
+        #control-menu {
+            display: none;
         }
+        #schedule:hover #control-menu {
+            display: inline-block;
+        }
+
     </style>
 {% endblock head %}
 {% block schedule_menu_script %}{{super()}}{% endblock schedule_menu_script %}
@@ -20,39 +20,15 @@
         <!--h1>Ну привет, {{user['username']}}</h1-->
         {% if schedules[0] %}
             {% for schedule in schedules %}
-                <div class="card shadow-sm mb-3 d-flex flex-row justify-content-between align-items-center" id="schedule">
-                    <a class="p-3 text-decoration-none text-truncate w-65" href="{{ url_for('web.view_schedule', alias=schedule.alias)}}">
-                        <div>{{schedule.name}}{%if schedule.name|length > 50%}...{%endif%}</div>
-                        <div class="text-muted">@{{schedule.alias}}</div>
-                    </a>
-                    {% import 'macros.html' as macros%}
-                    <div class="navbar-expand-xl">
-                        <div class="dropdown navbar-toggler">
-                            <div class="dropdown">
-                                <a class="btn btn-primary p-0 px-2" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    ...
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right p-0 shadow" aria-labelledby="#dropdownMenuLink">
-                                    <div class="btn-group-vertical d-block">
-                                        {{ macros.schedule_control_menu(user=user, schedule=schedule, is_small=False) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="btn-group mr-3 control-menu" id="control-menu">
-                            {{ macros.schedule_control_menu(user=user, schedule=schedule, is_small=True) }}
-                        </div>
-                    </div>
-                </div>
+                {% import 'macros.html' as macros %}
+                {{ macros.schedule(user=user, schedule=schedule)}}
             {% endfor %}
-            <div class="card shadow-sm bg-light" style="border: 0px">
-                    <a class="btn btn-sm btn-outline-primary p-2" href="{{url_for('web.create_schedule')}}">
-                        Создать новое расписание
-                    </a>
-                </div>
+            <div class="d-flex flex-row">
+                <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
+            </div>
         {% else %}
-            <div class="card shadow-sm bg-light" style="border: 0px">
-                <div class="card-header pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
+            <div class="border rounded-box shadow-sm bg-light" style="border: 0px">
+                <h5>Ой, вы не подписаны ни на одно расписание</h5>
                 <div class="card-body">
                     <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
                 </div>
@@ -60,7 +36,7 @@
             </div>
         {% endif %}
     {% else %}
-        <div class="card shadow-sm bg-light" style="border: 0px">
+        <div class="border rounded shadow-sm bg-light" style="border: 0px">
             <div class="card-header pb-1"><h5>Добро пожаловать!</h5></div>
             <div class="media-body m-3">
                 <p class="mb-0">&emsp;Вы не авторизованы, поэтому сейчас вы можете лишь находить и просматривать расаписания.</p>

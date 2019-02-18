@@ -9,6 +9,7 @@ web = Blueprint('web', __name__)
 
 error_schedule_not_found = 'Расписания по данной ссылке не существует'
 
+
 @web.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -49,6 +50,7 @@ def register():
         return redirect(url_for('web.home'))
     return render_template('register.html', title='Регистрация')
 
+
 @web.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -69,13 +71,16 @@ def login():
         return redirect(url_for('web.home'))
     return render_template('login.html', title='Авторизация')
 
+
 @web.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('web.home'))
 
+
 @web.route('/')
 def home():
+    print(request.user_agent.browser)
     user_id = auth.check_session_for_token(session)
     if user_id is not None:
         user = db.users.find_one({'_id': ObjectId(user_id)})
@@ -84,31 +89,27 @@ def home():
     return render_template('home.html')
 
 
-@web.route('/search/', methods= ['POST'])
-def search():
+@web.route('/search/', methods=['GET', 'POST'])
+@web.route('/search/<query>', methods=['GET', 'POST'])
+@web.route('/search/<query>/page/<offset>', methods=['GET', 'POST'])
+def search(query='', offset=0):
     if 'query' in request.form:
         query = request.form['query']
-    return redirect(url_for('web.search_with', query=query))
+    if len(query) == 0: return redirect(url_for('web.search', query='.*', offset=0))
 
-@web.route('/search/<query>', methods= ['GET'])
-def search_with(query):
+    print(query)
+
     user_id = auth.check_session_for_token(session)
     search_query_regex = '.*(%s).*' % query
-    print(search_query_regex)
-    schedules = db.schedules.find(
-        {
-            '$and': [
-                {'availability': 'public'},
-                {'$or': [
-                    {'alias': { '$regex': search_query_regex, '$options': 'i' }},
-                    {'name': { '$regex': search_query_regex, '$options': 'i' }}
-                ]}
-            ]
-        })
+    schedules = db.schedules.find({'$or':[
+        {'name': {'$regex': search_query_regex, '$options': 'i'}},
+        {'alias': {'$regex': search_query_regex, '$options': 'i'}}
+    ]})
+
     if user_id is None:
-        return render_template('search_result.html', title='Поиск', schedules=schedules)
-    user = db.users.find_one({'_id':ObjectId(user_id)})
-    return render_template('search_result.html', title='Поиск', schedules=schedules, user=user)
+        return render_template('search_result.html', title='Поиск', schedules=schedules, query=query)
+    user = db.users.find_one({'_id': ObjectId(user_id)})
+    return render_template('search_result.html', title='Поиск', schedules=schedules, query=query, user=user)
 
 @web.route('/schedules/<alias>')
 def view_schedule(alias):
@@ -127,6 +128,7 @@ def view_schedule(alias):
 
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('view_schedule.html', title=schedule['name'], user=user, schedule=schedule)
+
 
 @web.route('/schedules/create', methods=['GET', 'POST'])
 def create_schedule():
@@ -177,6 +179,7 @@ def create_schedule():
 
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('manage_schedule.html', title='Создание', user=user)
+
 
 @web.route('/schedules/<alias>/edit', methods=['GET', 'POST'])
 def edit_schedule(alias):
@@ -239,10 +242,6 @@ def edit_schedule(alias):
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('manage_schedule.html', title='Редактирование', user=user, schedule=schedule)
 
-@web.route('/schedules/test', methods=['GET'])
-def delete_test():
-    flash('oooof', 'warning')
-    return redirect(url_for('web.home'))
 
 @web.route('/schedules/<alias>/delete', methods=['POST'])
 def delete_schedule(alias):
@@ -259,6 +258,7 @@ def delete_schedule(alias):
     db.schedules.delete_one({'_id':schedule['_id']})
     flash('Расписание "%s" было успешно удалено' % schedule['name'], 'success');
     return '', 200
+
 
 @web.route('/schedules/<alias>/subscribe', methods=['POST'])
 def subscribe(alias):
@@ -282,9 +282,11 @@ def subscribe(alias):
     if ObjectId(user_id) in schedule['subscribed_users']:
         return '', 200
 
-    db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {'$addToSet': {{'subscribed_users': ObjectId(user_id)}},
-                                                       '$pull': {'invited_users': ObjectId(user_id)}})
+    db.schedules.update_one({'_id': ObjectId(schedule['_id'])}, {
+                                                        '$addToSet': {'subscribed_users': ObjectId(user_id)},
+                                                        '$pull': {'invited_users': ObjectId(user_id)}})
     return '', 200
+
 
 @web.route('/schedules/<alias>/unsubscribe', methods=['POST'])
 def unsubscribe(alias):

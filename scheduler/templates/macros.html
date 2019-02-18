@@ -1,16 +1,29 @@
-{% macro schedule_control_menu(user, schedule, is_small)%}
-    {% if is_small %}<div class="btn-group-vertical d-block">{% endif %}
-        {% if user['_id'] in schedule['subscribed_users'] %}
-        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</button>
-        {% else %}
-        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-success" id="subscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Подписаться</button>
-        {% endif %}
-        {% if user['_id'] == schedule['creator'] or user['_id'] in schedule['moderators'] %}
-        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-primary">Изменение на дату</button>
-        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-primary" id="schedule_edit" href="{{url_for('web.edit_schedule', alias=schedule.alias)}}">Редактировать</button>
-        {%endif%}
-        {% if user['_id'] == schedule['creator'] %}
-        <button class="btn {% if is_small %}btn-sm{%endif%} btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</button>
-        {%endif%}
-    {% if is_small %}</div>{% endif %}
+{% macro schedule(user, schedule) %}
+    <div id="schedule" class="row align-items-center p-3 mb-3 mx-0 shadow-sm border rounded-box">
+        <a class="col-md-10 text-decoration-none text-truncate" href="{{url_for('web.view_schedule', alias=schedule.alias)}}">
+            <div>{{schedule.name}}</div>
+            <div class="text-muted">@{{schedule.alias}}</div>
+        </a>
+        <div class="col-md-2 dropdown">
+            <a class="btn btn-primary rounded-pill p-0 mt-2 mt-md-0 px-2" href="#schedule-menu" role="button" id="control-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Настройки
+            </a>
+            <div class="dropdown-menu dropdown-menu-right p-0 shadow" aria-labelledby="#control-menu">
+                <div class="btn-group-vertical d-block">
+                {% if user['_id'] in schedule['subscribed_users'] %}
+                    <button class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</button>
+                {% else %}
+                    <button class="btn btn-sm btn-outline-success subscribe-btn" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Подписаться</button>
+                {% endif %}
+                {% if user['_id'] == schedule['creator'] or user['_id'] in schedule['moderators'] %}
+                    <button class="btn btn-sm btn-outline-primary">Изменение</button>
+                    <button class="btn btn-sm btn-outline-primary" id="schedule_edit" href="{{url_for('web.edit_schedule', alias=schedule.alias)}}">Редактировать</button>
+                {%endif%}
+                {% if user['_id'] == schedule['creator'] %}
+                    <button class="btn btn-sm btn-outline-danger" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</button>
+                {%endif%}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endmacro %}

@@ -17,6 +17,7 @@ def check_schedule_alias(alias):
         if schedule['_id'] == ObjectId(schedule_id): return jsonify({'result': 'error'}), 404
         return jsonify({'result': 'success'}), 200
 
+
 @api.route('/api/auth', methods=['POST'])
 def authorization():
     username = escape(request.args['username']).lower()
@@ -280,3 +281,7 @@ def promote_user(alias, username):
             db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
                                     {'$pull': {'moderators': ObjectId(user['_id'])}})
 
+
+@api.route('/api/search', methods=['POST'])
+def search():
+    return
