@@ -117,23 +117,8 @@
             var availability = $('#availability').val()
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
-            var schedule = [];
+            var schedule = get_parsed_schedule();
 
-            for (var w=0; w<week_count+1; w++){
-                var week = [];
-                if (w <= week_count ){
-                    for (var d=0; d<7; d++){
-                        var day = [];
-                        for (var l=0; l<9; l++){
-                            day.push($(`#lesson-${w}-${d}-${l}`).val())
-                        }
-                        week.push(day)
-                    }
-                } else {
-                    break;
-                }
-                schedule.push(week)
-            }
             $.post('{{url_for('web.create_schedule')}}', {
                 'schedule_name':schedule_name,
                 'alias':alias,
@@ -161,22 +146,8 @@
             var availability = $('#availability').val()
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
-            var schedule = [];
-            for (var w=0; w<week_count+1; w++){
-                var week = [];
-                if (w <= week_count ){
-                    for (var d=0; d<7; d++){
-                        var day = [];
-                        for (var l=0; l<9; l++){
-                            day.push($(`#lesson-${w}-${d}-${l}`).val())
-                        }
-                        week.push(day)
-                    }
-                } else {
-                    break;
-                }
-                schedule.push(week)
-            }
+            var schedule = get_parsed_schedule();
+
             $.post('{{url_for('web.edit_schedule', alias=schedule.alias)}}', {
                 'schedule_id': $('.schedule').attr('id'),
                 'schedule_name':schedule_name,
@@ -199,6 +170,37 @@
                 })
 
         })
+
+        function get_parsed_schedule(){
+            var schedule = [];
+            for (var w=0; w<week_count+1; w++){
+                var week = [];
+                if (w <= week_count ){
+                    for (var d=0; d<7; d++){
+                        var day = [];
+                        var has_lessons = false;
+                        for (var l=0; l<9; l++){
+                            if /.*\w+.*/.test((`#lesson-${w}-${d}-${l}`).val()){
+                                has_lessons = true;
+                                break;
+                            }
+                        }
+                        console.log('')
+                        if (has_lessons){
+                            for (var l=0; l<9; l++){
+                                if (`#lesson-${w}-${d}-${l}`).val()
+                                day.push($(`#lesson-${w}-${d}-${l}`).val())
+                            }
+                        }
+                        week.push(day)
+                    }
+                } else {
+                    break;
+                }
+                schedule.push(week)
+            }
+            return schedule;
+        }
 
         $('#schedule_name').val('{{schedule.name}}')
         $('#alias').val('{{schedule.alias}}')
