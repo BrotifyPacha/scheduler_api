@@ -8,29 +8,40 @@
         }
         .lessonholder{
             display: grid;
-            grid-template-rows: repeat(9, 0.45fr);
+            grid-template-rows: repeat(9, 1);
         }
-        .test{
-            display: grid;
-            grid-template-rows: 13fr 87fr;
+        .card-header{
+            border-radius: 0 !important;
         }
         .nav-link.active {
             color: #495057;
             background-color: #dee2e6;
             border-color: #dee2e6 #dee2e6 #dee2e6;
         }
-        .list-group, .list-group-item {
-            border-radius: 0px !important;
-        }
     </style>
     <script>
         $(function readyFn(){
-            today = new Date();
+            week_count = {{schedule.schedule|length}};
+            var today = new Date();
+
+            day_of_the_week = today.getDay();
+            if (day_of_the_week == 0) day_of_the_week = 7;
+
+            if (week_count == 1){
+                console.log(day_of_the_week);
+                $(`#week-1-day-${day_of_the_week}`).addClass('today');
+
+                window.location.hash = `#week-1-day-${day_of_the_week}`;
+            }
+
+            var first_day = '{{schedule.first_day}}';
+
         })
     </script>
 {% endblock head%}
 {% block content %}
-    <div class="h5">{{schedule.name}}</div>
+    {% import 'macros.html' as macros %}
+    {{ macros.message(title=schedule.name, message='') }}
 {% endblock content %}
 {% block no_container %}
     {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
@@ -50,16 +61,28 @@
                 <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
                     <div class="dayholder" >
                     {% for d in range(schedule.schedule[w]|length) %}
-                        <div class="test">
+                        <div class="d-flex flex-column" id="week-{{w+1}}-day-{{d+1}}">
                             <div class="card-header pb-1 text-center"><h6>{{weekdays[d]}}</h6></div>
-                            <div class="lessonholder list-group">
+                            {% set ns = namespace(has_lessons=false) %}
+                            {% for l in range(schedule.schedule[w][d]|length)%}
+                                {% if schedule.schedule[w][d][l]|length > 0 %}
+                                    {% set ns.has_lessons = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if ns.has_lessons %}
+                                <div class="lessonholder rounded-group-vertical m-2 flex-grow-1 list-group">
                                 {% for l in range(schedule.schedule[w][d]|length) %}
-                                <div class="d-flex align-items-center list-group-item py-1 px-3">
-                                    <div class="text-muted">{{l+1}}</div>
-                                    <div class="flex-grow-1 text-center">{{schedule.schedule[w][d][l]}}</div>
-                                </div>
+                                    <div class="d-flex align-items-center list-group-item py-1 px-3">
+                                        <div class="text-muted">{{l+1}}</div>
+                                        <div class="flex-grow-1 text-center">{{schedule.schedule[w][d][l]}}</div>
+                                    </div>
                                 {% endfor %}
-                            </div>
+                                </div>
+                            {% else %}
+                                <div class="rounded m-2 flex-grow-1 d-flex align-items-center">
+                                    <div class="text-muted text-center mx-auto p-2">Выходной</div>
+                                </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                     </div>

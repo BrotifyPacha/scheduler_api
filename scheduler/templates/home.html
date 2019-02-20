@@ -4,10 +4,10 @@
     <style>
         /*xl break-point*/
     @media (min-width: 1200px){
-        #control-menu {
+        #schedule-menu {
             display: none;
         }
-        #schedule:hover #control-menu {
+        #schedule:hover #schedule-menu {
             display: inline-block;
         }
 
@@ -18,31 +18,35 @@
 {% block content %}
     {% if user %}
         <!--h1>Ну привет, {{user['username']}}</h1-->
-        {% if schedules[0] %}
-            {% for schedule in schedules %}
-                {% import 'macros.html' as macros %}
-                {{ macros.schedule(user=user, schedule=schedule)}}
-            {% endfor %}
-            <div class="d-flex flex-row">
-                <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
-            </div>
+        {% for schedule in schedules %}
+            {% import 'macros.html' as macros %}
+            {{ macros.schedule(user=user, schedule=schedule)}}
+
         {% else %}
-            <div class="border rounded-box shadow-sm bg-light" style="border: 0px">
-                <h5>Ой, вы не подписаны ни на одно расписание</h5>
+            <div class="rounded border shadow-sm bg-light mb-3" style="border: 0px">
+                <div class="card-header rounded pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
                 <div class="card-body">
                     <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
                 </div>
-                <a class="btn btn-outline-secondary" href="{{ url_for('web.create_schedule')}}" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</a>
             </div>
-        {% endif %}
+        {% endfor %}
+        <div class="d-flex flex-row">
+            <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
+        </div>
     {% else %}
-        <div class="border rounded shadow-sm bg-light" style="border: 0px">
-            <div class="card-header pb-1"><h5>Добро пожаловать!</h5></div>
-            <div class="media-body m-3">
+        <div class="rounded border shadow-sm bg-light mb-3" style="border: 0px">
+            <div class="card-header rounded pb-1"><h5>Добро пожаловать!</h5></div>
+            <div class="card-body">
                 <p class="mb-0">&emsp;Вы не авторизованы, поэтому сейчас вы можете лишь находить и просматривать расаписания.</p>
                 <p>&emsp;Авторизуйтесь чтобы получить возможность создавать свои и подписываться на расписания, созданные другими пользователями.</p>
             </div>
         </div>
     {% endif %}
+    <div class="message rounded">
+        <a class="message-title rounded" href="{{url_for('static', filename='css/main.css')}}">Обновить main.css</a>
+    </div>
+    <div class="message rounded">
+        <a class="message-title rounded" href="{{url_for('static', filename='bootstrap-4.2.1/css/bootstrap.css')}}">Обновить bootstrap.css</a>
+    </div>
 {% endblock content %}
 {% block no_container%}{% endblock %}

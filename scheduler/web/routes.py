@@ -135,7 +135,7 @@ def create_schedule():
     user_id = auth.check_session_for_token(session)
     if user_id is None:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
-        return redirect(url_for('web.home')), 401
+        return redirect(url_for('web.home'))
 
     if request.method == 'POST':
         if len(request.form['schedule_name']) < 1:

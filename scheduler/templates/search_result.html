@@ -4,11 +4,11 @@
     <style>
         /*xl break-point*/
         @media (min-width: 1200px){
-            #control-menu {
+            #schedule-menu {
                 display: none;
             }
-            #schedule:hover #control-menu {
-                display: flex;
+            #schedule:hover #schedule-menu {
+                display: inline-block;
             }
         }
     </style>
@@ -22,13 +22,8 @@
             {{ macros.schedule(user=user, schedule=schedule)}}
         {% endfor %}
     {% else %}
-    <div class="card shadow-sm bg-light" style="border: 0px">
-        <div class="card-header pb-1"><h5>По вашему запросу ничего не найдено</h5></div>
-        <div class="card-body">
-            <p class="mb-0">&emsp;Вы можете создать своё расписание или найти уже созданное воспользовавшись поиском. Когда у вас появятся расписания они будут отображатся тут :)</p>
-        </div>
-        <a class="btn btn-outline-secondary" href="{{ url_for('web.create_schedule')}}" style="border-top-left-radius: 0px; border-top-right-radius: 0px;">Создать своё расписание</a>
-    </div>
+    {%import 'macros.html' as macros%}
+    {{macros.message(title='По вашему запросу ничего не найдено', message='')}}
     {%endif%}
 
 {% endblock content %}

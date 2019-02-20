@@ -2,42 +2,121 @@
 
 /*xl break-point*/
 @media (min-width: 1200px){
-    #control-menu {
+    #schedule-menu {
         display: none;
     }
-    #schedule:hover #control-menu {
-        display: flex;
+    #schedule:hover #schedule-menu {
+        display: inline-block;
     }
+}
+
+.rounded {
+  border-radius: 1rem !important;
+}
+
+.rounded-top {
+  border-top-left-radius: 1rem !important;
+  border-top-right-radius: 1rem !important;
+}
+
+.rounded-right {
+  border-top-right-radius: 1rem !important;
+  border-bottom-right-radius: 1rem !important;
+}
+
+.rounded-bottom {
+  border-bottom-right-radius: 1rem !important;
+  border-bottom-left-radius: 1rem !important;
+}
+
+.rounded-left {
+  border-top-left-radius: 1rem !important;
+  border-bottom-left-radius: 1rem !important;
 }
 
 .rounded-group{
     display: flex;
 }
 
-.rounded-box{
-    border-top-left-radius: 1rem  !important;
-    border-bottom-left-radius: 1rem  !important ;
-    border-top-right-radius: 1rem !important;
-    border-bottom-right-radius: 1rem !important;
+.rounded-group :first-child{
+    border-radius: 50rem 0 0 50rem !important;
+    margin-right: 0 !important;
 }
 
-.rounded-group .group-item:first-child{
-    border-top-left-radius: 50rem  !important;
-    border-bottom-left-radius: 50rem  !important ;
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
+.rounded-group :first-child :last-child{
+    border-radius: 50rem 50rem 50rem 50rem !important;
+    margin-right: 0 !important;
+    margin-left: -1px;
 }
 
-.rounded-group .group-item:not(:first-child):not(:last-child){
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
+.rounded-group :last-child{
+    border-radius: 0 50rem 50rem 0 !important;
+    margin-left: 0 !important;
+    margin-left: -1px;
 }
 
-.rounded-group .group-item:last-child{
-    border-top-right-radius: 50rem  !important;
-    border-bottom-right-radius: 50rem  !important;
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+.rounded-group-vertical{
+    display: flex;
+    border-radius: 1rem;
+    flex-direction: column;
+    padding: 0 !important;
+}
+
+.rounded-group-vertical :first-child:last-child{
+    border-radius: 1rem 1rem 1rem 1rem !important;
+    margin-right: 0 !important;
+}
+
+.rounded-group-vertical>:first-child, .rounded-group-vertical>:first-child>:first-child {
+    border-radius: 1rem 1rem 0 0 !important;
+    margin-right: 0 !important;
+    padding-top: 0.5rem;
+}
+
+.rounded-group-vertical :not(:first-child):not(:last-child){
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    margin-top: -1px;
+}
+
+.rounded-group-vertical>:last-child, .rounded-group-vertical>:last-child>:last-child{
+    border-radius: 0 0 1rem 1rem !important;
+    margin-left: 0 !important;
+    margin-top: -1px;
+    padding-bottom: 0.5rem;
+}
+
+/*dropdowns*/
+
+.dropdown-item.text-primary.active, .dropdown-item.text-primary:active{
+    color: #fff !important;
+    background-color: var(--primary);
+}
+.dropdown-item.text-danger.active, .dropdown-item.text-danger:active{
+    color: #fff !important;
+    background-color: var(--danger);
+}
+.dropdown-item.text-success.active, .dropdown-item.text-success:active{
+    color: #fff !important;
+    background-color: var(--success);
+}
+/* Индикатор текущего дня */
+.today .card-header{
+    background-color: var(--primary);
+    color: #fff;
+}
+.today *:not(.card-header):not(h6){
+    background-color: var(--primary-light);
+    border-radius: 1rem;
+}
+
+/* Вью для сообщений */
+.message{
+    background-color: var(--light)
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.message-title {
+    background-color: rgba(0,0,0, 0.03);
+    padding: 0.75rem 1.25rem;
 }

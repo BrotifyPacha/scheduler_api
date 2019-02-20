@@ -20,7 +20,7 @@
             background-color: f3f3f3;
         }
     </style>
-    <script>
+    <script type="text/javascript">
     $(function readyFn(){
         $('#schedule_name').keyup(check_name)
         $('#alias').change(check_alias)
@@ -82,6 +82,27 @@
             }
         }
 
+        function get_parsed_schedule(week_count){
+            var schedule = [];
+            for (var w=0; w<week_count+1; w++){
+                var week = [];
+                if (w <= week_count ){
+                    for (var d=0; d<7; d++){
+                        var day = [];
+                        for (var l=0; l<9; l++){
+                            day.push($(`#lesson-${w}-${d}-${l}`).val())
+                        }
+                        console.log(day);
+                        week.push(day)
+                    }
+                } else {
+                    break;
+                }
+                schedule.push(week)
+            }
+            return schedule;
+        }
+
         function check_first_date (){
             var date = $('#first_day').val()
             if ( (date.length >= 3 && date[2] != ".") || (date.length >= 6 && date[5] != '.')){
@@ -117,8 +138,8 @@
             var availability = $('#availability').val()
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
-            var schedule = get_parsed_schedule();
-
+            var schedule = get_parsed_schedule(week_count);
+            console.log(schedule);
             $.post('{{url_for('web.create_schedule')}}', {
                 'schedule_name':schedule_name,
                 'alias':alias,
@@ -146,7 +167,7 @@
             var availability = $('#availability').val()
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
-            var schedule = get_parsed_schedule();
+            var schedule = get_parsed_schedule(week_count);
 
             $.post('{{url_for('web.edit_schedule', alias=schedule.alias)}}', {
                 'schedule_id': $('.schedule').attr('id'),
@@ -157,7 +178,7 @@
                 'schedule': JSON.stringify(schedule)},
                 function(result){
                     if (result['result'] == 'success'){
-                        window.location.replace('{{url_for('web.home')}}')
+                        //window.location.replace('{{url_for('web.home')}}')
                     }
                 })
                 .always(function(result){
@@ -171,41 +192,10 @@
 
         })
 
-        function get_parsed_schedule(){
-            var schedule = [];
-            for (var w=0; w<week_count+1; w++){
-                var week = [];
-                if (w <= week_count ){
-                    for (var d=0; d<7; d++){
-                        var day = [];
-                        var has_lessons = false;
-                        for (var l=0; l<9; l++){
-                            if /.*\w+.*/.test((`#lesson-${w}-${d}-${l}`).val()){
-                                has_lessons = true;
-                                break;
-                            }
-                        }
-                        console.log('')
-                        if (has_lessons){
-                            for (var l=0; l<9; l++){
-                                if (`#lesson-${w}-${d}-${l}`).val()
-                                day.push($(`#lesson-${w}-${d}-${l}`).val())
-                            }
-                        }
-                        week.push(day)
-                    }
-                } else {
-                    break;
-                }
-                schedule.push(week)
-            }
-            return schedule;
-        }
-
         $('#schedule_name').val('{{schedule.name}}')
         $('#alias').val('{{schedule.alias}}')
         $('#first_day').val('{{schedule.first_day}}')
-        $('#week_count').val('{{schedule.shedule|length}}')
+        $('#week_count').val('{{schedule.schedule|length-1}}')
         $('#availability').val('{{schedule.availability}}')
 
         check_name()
@@ -302,11 +292,11 @@
                 <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
                     <div class="dayholder" >
                     {% for i in range(7) %}
-                        <div class="shadow-sm">
+                        <div>
                             <div class="card-header pb-1 text-center"><h6>{{weekdays[i]}}</h6></div>
                             <div class="card-body p-0">
                                 {% for j in range(9) %}
-                                    <input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" style="" type="text" placeholder="{{j+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][i][j]}}"{%endif%}>
+                                    <input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" type="text" placeholder="{{j+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][i][j]}}"{%endif%}>
                                 {% endfor %}
                             </div>
                         </div>
