@@ -19,6 +19,20 @@
         .nav-tabs .nav-item card-header active {
             background-color: f3f3f3;
         }
+        .copy-btn, .paste-btn{
+            cursor: pointer;
+        }
+        @media(min-width: 576px){
+            .copy-btn, .paste-btn{
+                display: none;
+            }
+            .day:hover .copy-btn, .day:hover .paste-btn{
+                display: inline-block;
+            }
+            .card-header{
+                flex-grow: 1;
+            }
+        }
     </style>
     <script type="text/javascript">
     $(function readyFn(){
@@ -53,33 +67,47 @@
         }
         function check_alias(){
             var alias = $('#alias').val()
-            if (alias.length > 0){
-                if (!/^[A-Za-z0-9-_]+$/.test(alias)){
-                    $('#alias-feedback').empty().append('Используйте лишь символы латиницы (A-z), цифры (0-9), тире "-" и подчёркивание "_"')
-                    $('#alias').addClass('is-invalid').removeClass('is-valid')
-                }
-                {% if schedule %}
-                $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
-                {% else %}
-                $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias,
-                {% endif %}
-                    function(result){
-                        console.log(result);
-                        if (result['result'] == 'success'){
-                            $('#alias').addClass('is-invalid').removeClass('is-valid')
-                            $('#done, #save').attr('disabled', !check_button())
-                            return
-                        }
-
-                    })
-                    .fail(function(result){
-                        if (result.status == 404){
-                            $('#alias').addClass('is-valid').removeClass('is-invalid')
-                            $('#done, #save').attr('disabled', !check_button())
-                            return
-                        }
-                    })
+            if (alias.length == 0){
+                $('#alias').addClass('is-valid').removeClass('is-invalid')
+                $('#done, #save').attr('disabled', !check_button())
+                return
             }
+
+            if (!/^[A-Za-z0-9-_]+$/.test(alias)){
+                $('#alias-feedback').empty().append('Используйте лишь символы латиницы (A-z), цифры (0-9), тире "-" и подчёркивание "_"')
+                $('#alias').addClass('is-invalid').removeClass('is-valid')
+                $('#done, #save').attr('disabled', !check_button())
+                return
+            }
+            {% if schedule %}
+            $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
+            {% else %}
+            $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias,
+            {% endif %}
+                function(result){
+                    console.log(result);
+                    if (result['result'] == 'success'){
+                        $('#alias-feedback').empty().append('Данная ссылка занята, выберите другую или оставьте поле пустым, тогда ссылка выберется автоматически')
+                        $('#alias').addClass('is-invalid').removeClass('is-valid')
+                        $('#done, #save').attr('disabled', !check_button())
+                        return
+                    }
+
+                })
+                .fail(function(result){
+                    if (result.status == 404){
+                        $('#alias').addClass('is-valid').removeClass('is-invalid')
+                        $('#done, #save').attr('disabled', !check_button())
+                        return
+                    }
+                    if (result.status == 400){
+                        $('#alias-feedback').empty().append('Используйте лишь символы латиницы (A-z), цифры (0-9), тире "-" и подчёркивание "_"')
+                        $('#alias').addClass('is-invalid').removeClass('is-valid')
+                        $('#done, #save').attr('disabled', !check_button())
+                        return
+                    }
+                })
+
         }
 
         function get_parsed_schedule(week_count){
@@ -178,7 +206,7 @@
                 'schedule': JSON.stringify(schedule)},
                 function(result){
                     if (result['result'] == 'success'){
-                        //window.location.replace('{{url_for('web.home')}}')
+                        window.location.replace('{{url_for('web.home')}}')
                     }
                 })
                 .always(function(result){
@@ -204,6 +232,30 @@
         check_week_count()
 
         {% endif %}
+
+        $('.copy-btn').on('click', function(event){
+            var btn = event.delegateTarget
+            var day = btn.dataset['day']
+            var lessons = [];
+            for (var i=0; i<9; i++){
+                lessons.push($(`#lesson-${day}-${i}`).val())
+            }
+            $('#buffer').empty()
+            $('#buffer').append(JSON.stringify(lessons))
+        })
+
+        $('.paste-btn').on('click', function(event){
+            var btn = event.delegateTarget
+            var day = btn.dataset['day']
+            console.log($('#buffer').text().length)
+            if ($('#buffer').text().length > 0){
+                var lessons = JSON.parse($('#buffer').text());
+                for (var i=0; i<9; i++){
+                    $(`#lesson-${day}-${i}`).val(lessons[i])
+                }
+            }
+        })
+
     })
     </script>
 {% endblock %}
@@ -236,7 +288,7 @@
                         <span class="input-group-text">Ссылка</span>
                     </div>
                     <input class="form-control" name="alias" id="alias" type="text" placeholder='group-406'>
-                    <div class="invalid-feedback" id="alias-feedback">Данная ссылка занята, выберите другую или оставьте поле пустым, тогда ссылка выберется автоматически</div>
+                    <div class="invalid-feedback" id="alias-feedback"></div>
                 </div>
             </div>
             <div class="row no-gutters">
@@ -291,12 +343,20 @@
             {% for w in range(5) %}
                 <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
                     <div class="dayholder" >
-                    {% for i in range(7) %}
-                        <div>
-                            <div class="card-header pb-1 text-center"><h6>{{weekdays[i]}}</h6></div>
+                    {% for d in range(7) %}
+                        <div class="day">
+                            <div class="card-header d-flex flex-row justify-content-between pb-1 text-center">
+                                <div class="copy-btn"  data-day="{{w}}-{{d}}">
+                                    <i class="far fa-copy"></i>
+                                </div>
+                                <h6 class="text-center flex-grow-1">{{weekdays[d]}}</h6>
+                                <div class="paste-btn" data-day="{{w}}-{{d}}">
+                                    <i class="far fa-clipboard"></i>
+                                </div>
+                            </div>
                             <div class="card-body p-0">
-                                {% for j in range(9) %}
-                                    <input class="form-control form-control-sm" id="lesson-{{w}}-{{i}}-{{j}}" type="text" placeholder="{{j+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][i][j]}}"{%endif%}>
+                                {% for l in range(9) %}
+                                    <input class="form-control form-control-sm" id="lesson-{{w}}-{{d}}-{{l}}" type="text" placeholder="{{l+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][d][l]}}"{%endif%}>
                                 {% endfor %}
                             </div>
                         </div>
@@ -307,4 +367,5 @@
             </div>
         </div>
     </div>
+    <div hidden id="buffer"></div>
 {% endblock no_container %}

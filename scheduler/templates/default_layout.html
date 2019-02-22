@@ -11,6 +11,10 @@
     <script src="{{url_for('static', filename='jquery-3.3.1.min.js')}}"></script>
     <script src="{{url_for('static', filename='bootstrap-4.2.1/js/bootstrap.bundle.js')}}"></script>
 
+    <!--icons font awesome -->
+    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/regular.js" integrity="sha384-Gxfqh68NuE4s0o2renzieYkDYVbdJynynsdrB7UG9yEvgpS9TVM+c4bknWfQXUBg" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/fontawesome.js" integrity="sha384-xl26xwG2NVtJDw2/96Lmg09++ZjrXPc89j0j7JHjLOdSwHDHPHiucUjfllW0Ywrq" crossorigin="anonymous"></script>
+
     {% if title %}
         <title>{{title}}</title>
     {% else %}
@@ -81,16 +85,18 @@
     {% block schedule_menu_modal %}
     <div class="modal fade" id="confirmation-modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="modal-content rounded">
+                <div class="modal-header border-0">
                     <h5 id="modal-title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
-                    <button class="btn btn-danger" id="modal-confirm"></button>
+                <div class="d-flex flex-row-reverse mx-3 mb-3">
+                    <div class="rounded-group">
+                        <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
+                        <button class="btn btn-danger" id="modal-confirm"></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,11 +108,11 @@
         <div class="container">
             <a class="navbar-brand" href="{{url_for('web.home')}}"><b>Scheduler</b></a>
             <button class="navbar-toggler btn btn-primary btn-sm my-1" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">
-                <img src="{{url_for('static', filename='menu_img.png')}}" style="height: 1em; width: 1em"/>
+                <img src="{{url_for('static', filename='icons\menu_icon.png')}}" style="height: 1em; width: 1em"/>
             </button>
             <div class="collapse navbar-collapse" id="collapse-menu">
                 <div class="mx-auto mt-2 mt-md-0 search-bar">
-                    <form class="rounded-group" action="{{url_for('web.search')}}" method="post" class="input-group">
+                    <form class="rounded-group" action="{{url_for('web.search')}}" method="post">
                         <input class="form-control group-item" name="query" type="search" placeholder="Поиск" aria-label="Search" {%if query%}value="{{query}}"{%endif%}>
                         <button class="btn btn-outline-primary group-item">Искать</button>
                     </form>
@@ -115,7 +121,7 @@
                 <div class="navbar-nav mt-2 mt-md-0">
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
-                        <div class="dropdown-menu m-0 shadow rounded">
+                        <div class="dropdown-menu dropdown-menu-md-right m-0 shadow rounded">
                             <a class="dropdown-item" href="#">Приглашения</a>
                             <a class="dropdown-item" href="#">Настройки</a>
                             <div class="dropdown-divider"></div>

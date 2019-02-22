@@ -20,12 +20,17 @@
         }
         .form-control {
             position: relative;
-            font-size: 24px;
+            font-size: 20px;
             height: auto;
         }
-        .form-control:focus{
+        .form-control:focus {
             z-index: 2;
         }
+        .btn {
+            position: relative;
+            font-size: 18px;
+        }
+
     </style>
     <script>
     $(function readyFn(){
@@ -52,7 +57,7 @@
                 $('#username_input').addClass('is-invalid').removeClass('is-valid');
                 $('.message-container')
                     .attr('hidden', false)
-                    .append('<div class="alert alert-danger alert-username">Разрешены лишь символы латиницы (a-z), арабские цифры (0-9), "_" и "."</div>');
+                    .append('<div class="rounded alert alert-danger alert-username">Разрешены лишь символы латиницы (a-z), арабские цифры (0-9), "_" и "."</div>');
             }
             return false;
         }
@@ -62,7 +67,7 @@
                 $('#username_input').addClass('is-invalid').removeClass('is-valid');
                 $('.message-container')
                     .attr('hidden', false)
-                    .append('<div class="alert alert-danger alert-username">Между двумя символами "_" или "." должна быть хотябы одна буква или цифра</div>');
+                    .append('<div class="rounded alert alert-danger alert-username">Между двумя символами "_" или "." должна быть хотябы одна буква или цифра</div>');
             }
             return false;
         }
@@ -105,18 +110,19 @@
     <form action="" method="post">
         <h2 class="mb-3">Регистрация</h2>
         <div class="message-container" hidden="true">
-
         </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{category}}">{{message}}</div>
+                    <div class="rounded alert alert-{{category}}">{{message}}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <input class="form-control username rounded mb-2" id="username_input" type="text" name="username" placeholder="Логин" autofocus>
-        <input class="form-control password rounded mb-2" id="password_input" type="password" name="password" placeholder="Пароль">
-        <input class="form-control confirmation rounded mb-2" id="confirmation_input" type="password" name="confirmation" placeholder="Подтверждение пароля">
+        <div class="rounded-group-vertical mb-2">
+            <input class="form-control username" id="username_input" type="text" name="username" placeholder="Логин" autofocus>
+            <input class="form-control password" id="password_input" type="password" name="password" placeholder="Пароль">
+            <input class="form-control confirmation" id="confirmation_input" type="password" name="confirmation" placeholder="Подтверждение пароля">
+        </div>
         <div class="rounded-group" role="group">
             <input class="btn btn-primary btn-lg" id="done" style="width: 50%" type="submit" value="Готово" disabled="true">
             <a class="btn btn-secondary btn-lg" href="{{ url_for('web.home') }}" style="width: 50%">Позже</a>

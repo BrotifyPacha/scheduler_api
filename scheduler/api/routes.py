@@ -2,14 +2,17 @@ from scheduler import db, auth, utils
 from flask import Blueprint, jsonify, request, abort, escape
 from bson.objectid import ObjectId
 from ast import literal_eval
+import re
 
 api = Blueprint('api', __name__)
 
 @api.route('/api/check_schedule_alias/<alias>', methods=['POST'])
 def check_schedule_alias(alias):
+    if not re.match('[A-Za-z0-9_.]+', alias):
+        return jsonify({'result': 'error', 'field': 'alias'}), 400
     schedule = db.schedules.find_one({'alias': alias})
     if 'schedule_id' not in request.form:
-        if  schedule is None: return jsonify({'result': 'error'}), 404
+        if schedule is None: return jsonify({'result': 'error'}), 404
         return jsonify({'result': 'success'}), 200
     else:
         schedule_id = request.form['schedule_id']

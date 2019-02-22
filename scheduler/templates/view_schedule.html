@@ -24,18 +24,33 @@
             week_count = {{schedule.schedule|length}};
             var today = new Date();
 
+            var active_week = 1;
+
+            if (week_count > 1){
+                var first_day = '{{schedule.first_day}}';
+                var year = '20'+first_day.substring(6)
+                var month = first_day.substring(3, 5)
+                var day = first_day.substring(0, 2)
+                //console.log(`${year}-${month}-${day}`)
+                first_day_date = new Date(parseInt(year), parseInt(month)-1, parseInt(day))
+                //console.log(first_day_date)
+
+                var today_time = today.getTime();
+                var first_day_time = first_day_date.getTime();
+
+                var timeDelta = today_time - first_day_time;
+                timeDelta = timeDelta/1000/60/60/24 //конвертируем в дни
+
+                var weeks_passed = Math.floor(timeDelta/7)
+                //console.log(weeks_passed);
+                var active_week = (weeks_passed % week_count) +1;
+                //console.log(active_week);
+            }
             day_of_the_week = today.getDay();
             if (day_of_the_week == 0) day_of_the_week = 7;
-
-            if (week_count == 1){
-                console.log(day_of_the_week);
-                $(`#week-1-day-${day_of_the_week}`).addClass('today');
-
-                window.location.hash = `#week-1-day-${day_of_the_week}`;
-            }
-
-            var first_day = '{{schedule.first_day}}';
-
+            $(`#week-${active_week}-day-${day_of_the_week}`).addClass('today');
+            $(`#nav-week-${active_week}`).tab('show')
+            window.location.hash = `#week-${active_week}-day-${day_of_the_week}`;
         })
     </script>
 {% endblock head%}

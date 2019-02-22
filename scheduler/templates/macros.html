@@ -4,7 +4,8 @@
             <div>{{schedule.name}}</div>
             <div class="text-muted">@{{schedule.alias}}</div>
         </a>
-        {% if user['_id'] != schedule['creator'] and user['_id'] not in schedule['moderators'] %}
+        {% if user %}
+            {% if user['_id'] != schedule['creator'] and user['_id'] not in schedule['moderators'] %}
             <div class="col-md-2" id="schedule-menu">
             {% if user['_id'] in schedule['subscribed_users'] %}
                 <a class="btn btn-outline-danger rounded p-0 px-2 mt-2 mt-md-0" href="#" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</a>
@@ -12,12 +13,12 @@
                 <a class="btn btn-outline-success rounded subscribe-btn p-0 px-2" href="#" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Подписаться</a>
             {% endif %}
             </div>
-        {% else %}
-        <div class="col-md-2 dropdown" id="schedule-menu">
-            <a class="btn btn-outline-primary rounded-pill p-0 px-2 mt-2 mt-md-0" href="#" id="control-menu" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
-                Настройки
-            </a>
-            <div class="rounded-group-vertical dropdown-menu dropdown-menu-md-right shadow" aria-labelledby="#control-menu">
+            {% else %}
+            <div class="col-md-2 dropdown" id="schedule-menu">
+                <a class="btn btn-outline-primary rounded-pill p-0 px-2 mt-2 mt-md-0" href="#" id="control-menu" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
+                    Настройки
+                </a>
+                <div class="rounded-group-vertical dropdown-menu dropdown-menu-md-right shadow" aria-labelledby="#control-menu">
                 {% if user['_id'] in schedule['subscribed_users'] %}
                     <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#confirmation-modal" data-action="unsubscribe" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Отписаться</a>
                 {% else %}
@@ -32,8 +33,9 @@
                     <div class="dropdown-divider my-1"></div>
                     <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#confirmation-modal" data-action="delete" data-schedule-name="{{schedule.name}}" data-schedule-alias="{{schedule.alias}}">Удалить</a>
                 {%endif%}
+                </div>
             </div>
-        </div>
+            {% endif %}
         {% endif %}
     </div>
 {% endmacro %}

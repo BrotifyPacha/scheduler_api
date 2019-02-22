@@ -21,10 +21,18 @@
             {% import 'macros.html' as macros %}
             {{ macros.schedule(user=user, schedule=schedule)}}
         {% endfor %}
+        <div class="d-flex rounded-group justify-content-center">
+        {% for p in range(1, page_count+1) %}
+            {% if p == page %}
+            <a class="btn btn-primary" href="{{url_for('web.search', query=query, page=p)}}">{{p}}</a>
+            {% else %}
+            <a class="btn btn-secondary" href="{{url_for('web.search', query=query, page=p)}}">{{p}}</a>
+            {% endif %}
+        {% endfor %}
+        </div>
     {% else %}
     {%import 'macros.html' as macros%}
     {{macros.message(title='По вашему запросу ничего не найдено', message='')}}
     {%endif%}
-
 {% endblock content %}
 {% block no_container %}{% endblock %}

@@ -20,8 +20,15 @@
         }
         .form-control {
             position: relative;
-            font-size: 24px;
+            font-size: 20px;
             height: auto;
+        }
+        .form-control:focus {
+            z-index: 2;
+        }
+        .btn {
+            position: relative;
+            font-size: 18px;
         }
     </style>
     <script>
@@ -42,12 +49,14 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{category}}">{{message}}</div>
+                    <div class="alert alert-{{category}} rounded">{{message}}</div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        <input class="form-control rounded mb-2" type="text" id="username_input" name="username" placeholder="Логин" required autofocus>
-        <input class="form-control rounded mb-2" type="password" id="password_input" name="password" placeholder="Пароль" required>
+        <div class="rounded-group-vertical mb-2">
+            <input class="form-control rounded" type="text" id="username_input" name="username" placeholder="Логин" required autofocus>
+            <input class="form-control rounded" type="password" id="password_input" name="password" placeholder="Пароль" required>
+        </div>
         <div class="rounded-group" role="group">
             <input class="btn btn-primary btn-lg" id="done" disabled style="width: 50%" type="submit" value="Войти">
             <a class="btn btn-secondary btn-lg" href="{{ url_for('web.home') }}" style="width: 50%">Позже</a>

@@ -3,6 +3,7 @@ from flask import render_template, request, session, redirect, url_for, flash, j
 from bson.objectid import ObjectId
 from scheduler import utils
 from ast import literal_eval
+from math import ceil
 import re
 
 web = Blueprint('web', __name__)
@@ -91,25 +92,40 @@ def home():
 
 @web.route('/search/', methods=['GET', 'POST'])
 @web.route('/search/<query>', methods=['GET', 'POST'])
-@web.route('/search/<query>/page/<offset>', methods=['GET', 'POST'])
-def search(query='', offset=0):
+@web.route('/search/<query>/page/<int:page>', methods=['GET', 'POST'])
+def search(query='', page=1):
     if 'query' in request.form:
         query = request.form['query']
-    if len(query) == 0: return redirect(url_for('web.search', query='.*', offset=0))
+    if len(query) == 0: return redirect(url_for('web.search', query='.*', page=1))
+
 
     print(query)
 
     user_id = auth.check_session_for_token(session)
     search_query_regex = '.*(%s).*' % query
+    result_count = db.schedules.find({
+        '$or': [
+            {'name': {'$regex': search_query_regex, '$options': 'i'}},
+            {'alias': {'$regex': search_query_regex, '$options': 'i'}}
+        ]
+    }).count()
+
+    limit = 5
+    page_count = ceil(result_count/limit)
+
+    if (page <= 0 ):
+        return redirect(url_for('web.search', query=query, page=1))
+
+    if (page > page_count):
+        return redirect(url_for('web.search', query=query, page=page_count))
+
     schedules = db.schedules.find({'$or':[
         {'name': {'$regex': search_query_regex, '$options': 'i'}},
         {'alias': {'$regex': search_query_regex, '$options': 'i'}}
-    ]})
+    ]}).skip((page-1)*limit).limit(limit)
 
-    if user_id is None:
-        return render_template('search_result.html', title='Поиск', schedules=schedules, query=query)
     user = db.users.find_one({'_id': ObjectId(user_id)})
-    return render_template('search_result.html', title='Поиск', schedules=schedules, query=query, user=user)
+    return render_template('search_result.html', title='Поиск', schedules=schedules, query=query, page_count=page_count, page=page, user=user)
 
 @web.route('/schedules/<alias>')
 def view_schedule(alias):
@@ -121,11 +137,9 @@ def view_schedule(alias):
         return redirect(url_for('web.home'));
 
     if schedule['availability'] == 'private':
-        if ObjectId(user_id) not in schedule['subscribed_users'] or ObjectId(user_id) != schedule['creator']:
+        if ObjectId(user_id) not in schedule['subscribed_users'] and ObjectId(user_id) != schedule['creator']:
             flash('У вас нет доступа к этому расписанию, если вы считает что это ошибка, свяжитесь с его создателем и попросите выслать вам приглашение', 'warning')
             return redirect(url_for('web.home'));
-
-
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('view_schedule.html', title=schedule['name'], user=user, schedule=schedule)
 
@@ -140,11 +154,14 @@ def create_schedule():
     if request.method == 'POST':
         if len(request.form['schedule_name']) < 1:
             return jsonify({'result': 'error', 'field': 'schedule_name'}), 400
-
         schedule_name = request.form['schedule_name']
         alias = utils.gen_schedule_alias()
-        if 'alias' in request.form:
+        if 'alias' in request.form and len(request.form['alias']) > 0:
             alias = request.form['alias']
+
+            if not re.match('[A-Za-z0-9_.]*', alias):
+                return jsonify({'result': 'error', 'field': 'alias'}), 400
+
             if db.schedules.find_one({'alias': alias}) is not None:
                 return jsonify({'result': 'error', 'field': 'alias'}), 400
             if len(alias) == 0:
