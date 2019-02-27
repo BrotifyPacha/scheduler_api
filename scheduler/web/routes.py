@@ -127,7 +127,8 @@ def search(query='', page=1):
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('search_result.html', title='Поиск', schedules=schedules, query=query, page_count=page_count, page=page, user=user)
 
-@web.route('/schedules/<alias>')
+
+@web.route('/schedules/<alias>', methods=['GET'])
 def view_schedule(alias):
     user_id = auth.check_session_for_token(session)
 
@@ -190,7 +191,7 @@ def create_schedule():
             'invited_users': [],
             'subscribed_users': [ObjectId(user_id)],
             'schedule': schedule,
-            'changes': []
+            'changes': {}
         })
         return jsonify({'result': 'success'}), 201
 
@@ -198,7 +199,7 @@ def create_schedule():
     return render_template('manage_schedule.html', title='Создание', user=user)
 
 
-@web.route('/schedules/<alias>/edit', methods=['GET', 'POST'])
+@web.route('/schedules/<alias>/edit', methods=['GET', 'POST', 'PUT'])
 def edit_schedule(alias):
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None:
@@ -210,8 +211,9 @@ def edit_schedule(alias):
         flash('Нехватает прав на редактирование этого расписания', 'danger')
         return redirect(url_for('web.home')), 401
 
+    #Редактирование постоянного расписания
     if request.method == 'POST':
-        schedule_id = request.form['schedule_id']
+        schedule_id = schedule['_id']
         if len(request.form['schedule_name']) < 1:
             return jsonify({'result': 'error', 'field': 'schedule_name'}), 400
 
@@ -227,34 +229,47 @@ def edit_schedule(alias):
                 while db.schedules.find_one({'alias': alias}) is not None:
                     alias = utils.gen_schedule_alias()
 
-
-
         availability = request.form['availability']
 
         if availability not in ['public', 'private']:
             return jsonify({'result': 'error', 'field': 'availability'}), 400
 
         first_day = request.form['first_day']
-        schedule = literal_eval(request.form['schedule'])
+        day_schedule = literal_eval(request.form['schedule'])
 
-        if len(schedule) > 1 and not re.match('\d{2}\.\d{2}\.\d{2}', first_day):
+        if len(day_schedule) > 1 and not re.match('\d{2}\.\d{2}\.\d{2}', first_day):
             return jsonify({'result': 'error', 'field': 'first_day'}), 400
 
-        schedule_update = db.schedules.update_one({'_id': ObjectId(schedule_id)}, { '$set':{
+        db.schedules.update_one({'_id': ObjectId(schedule_id)}, { '$set':{
             'name': schedule_name,
             'alias': alias,
             'availability': availability,
             'first_day': first_day,
-            'creator': ObjectId(user_id),
-            'moderators': [],
-            'invited_users': [],
-            'subscribed_users': [ObjectId(user_id)],
-            'schedule': schedule,
-            'changes': []
+            'schedule': day_schedule
         }})
         return jsonify({'result': 'success'}), 201
 
-        return
+    # Добавление изменения на определённую дату
+    if request.method == 'PUT':
+        change_date = request.form['change_date']
+        lessons = literal_eval(request.form['lessons'])
+
+        if not re.match('\d{2}\.\d{2}\.\d{2}', change_date):
+            return jsonify({'result': 'error', 'field': 'change_date'}), 400
+
+        if change_date in schedule['changes']:
+            return jsonify({'result': 'error'}), 409
+
+
+        db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
+                                {
+                                    '$addToSet:': {
+                                        {'change_date':lessons}
+                                    }
+                                })
+
+
+        return jsonify({'result': 'success'}), 201
 
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('manage_schedule.html', title='Редактирование', user=user, schedule=schedule)

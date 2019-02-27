@@ -33,8 +33,8 @@
                     var title = `Вы уверены что хотите удалить расписание "${name}"?`;
                 else var title = `Вы уверены что хотите отписаться от расписания "${name}"?`;
 
-                $('#modal-title').empty()
-                $('#modal-title').append(title)
+                $('.modal-title').empty()
+                $('.modal-title').append(title)
                 $('#modal-confirm').empty()
                 $('#modal-confirm').append(action == 'delete' ? 'Удалить' : 'Отписаться')
 
@@ -87,7 +87,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content rounded">
                 <div class="modal-header border-0">
-                    <h5 id="modal-title"></h5>
+                    <h5 class="modal-title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -97,6 +97,26 @@
                         <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
                         <button class="btn btn-danger" id="modal-confirm"></button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="change-date-modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content rounded">
+                <div class="modal-header border-0">
+                    <h5>Добавление изменения</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                {% for l in range(9) %}
+                    <input class="form-control form-control-sm" id="lesson-{{l}}" type="text" placeholder="{{l+1}}">
+                {% endfor %}
+                </div>
+                <div class="d-flex flex-row-reverse mx-3 mb-3">
+                    <button class="btn btn-danger rounded-pill" id="modal-save"></button>
                 </div>
             </div>
         </div>

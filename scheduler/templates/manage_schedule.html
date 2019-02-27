@@ -198,7 +198,6 @@
             var schedule = get_parsed_schedule(week_count);
 
             $.post('{{url_for('web.edit_schedule', alias=schedule.alias)}}', {
-                'schedule_id': $('.schedule').attr('id'),
                 'schedule_name':schedule_name,
                 'alias':alias,
                 'availability':availability,
@@ -213,7 +212,7 @@
                     if (result.status == 400){
                         $('#'+result.responseJSON['field']).addClass('is-invalid').removeClass('is-valid')
                     }
-                    if (result.status == 401){
+                    if (result.status == 401 || result.status == 404){
                         window.location.replace('{{url_for('web.home')}}')
                     }
                 })

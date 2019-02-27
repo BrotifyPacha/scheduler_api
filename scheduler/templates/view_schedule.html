@@ -55,8 +55,14 @@
     </script>
 {% endblock head%}
 {% block content %}
-    {% import 'macros.html' as macros %}
-    {{ macros.message(title=schedule.name, message='') }}
+    <div class="rounded border">
+        <div class="rounded border-bottom px-3 pt-2 pb-1 shadow-sm">
+            <h5>{{schedule.name}}</h5>
+        </div>
+        <div class="p-3">
+            <div class="btn btn-primary">Подписчики</div>
+        </div>
+    </div>
 {% endblock content %}
 {% block no_container %}
     {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
@@ -85,7 +91,7 @@
                                 {% endif %}
                             {% endfor %}
                             {% if ns.has_lessons %}
-                                <div class="lessonholder rounded-group-vertical m-2 flex-grow-1 list-group">
+                                <div class="lessonholder rounded-group-vertical m-2 flex-grow-1 list-group shadow-sm">
                                 {% for l in range(schedule.schedule[w][d]|length) %}
                                     <div class="d-flex align-items-center list-group-item py-1 px-3">
                                         <div class="text-muted">{{l+1}}</div>

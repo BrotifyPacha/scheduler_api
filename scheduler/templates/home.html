@@ -34,13 +34,10 @@
             <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
         </div>
     {% else %}
-        <div class="rounded border shadow-sm bg-light mb-3" style="border: 0px">
-            <div class="card-header rounded pb-1"><h5>Добро пожаловать!</h5></div>
-            <div class="card-body">
-                <p class="mb-0">&emsp;Вы не авторизованы, поэтому сейчас вы можете лишь находить и просматривать расаписания.</p>
-                <p>&emsp;Авторизуйтесь чтобы получить возможность создавать свои и подписываться на расписания, созданные другими пользователями.</p>
-            </div>
-        </div>
+        {% import 'macros.html' as macros %}
+        {{ macros.message(title='Добро пожаловать!', messages=[
+            'Вы не авторизованы, поэтому сейчас вы можете лишь находить и просматривать расаписания.',
+            'Авторизуйтесь чтобы получить возможность создавать свои и подписываться на расписания, созданные другими пользователями.']) }}
     {% endif %}
     <!--div class="message rounded">
         <a class="message-title rounded" href="{{url_for('static', filename='css/main.css')}}">Обновить main.css</a>
