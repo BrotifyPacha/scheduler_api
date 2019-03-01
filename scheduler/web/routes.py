@@ -191,7 +191,7 @@ def create_schedule():
             'invited_users': [],
             'subscribed_users': [ObjectId(user_id)],
             'schedule': schedule,
-            'changes': {}
+            'changes': []
         })
         return jsonify({'result': 'success'}), 201
 
@@ -251,22 +251,34 @@ def edit_schedule(alias):
 
     # Добавление изменения на определённую дату
     if request.method == 'PUT':
-        change_date = request.form['change_date']
-        lessons = literal_eval(request.form['lessons'])
+        if 'change_date' not in request.form:
+            print('no change-date')
+            return jsonify({'result': 'error', 'field': 'change_date'}), 400
+        if 'lessons' not in request.form:
+            print('no lessons')
+            return jsonify({'result': 'error', 'field': 'lessons'}), 400
 
+        change_date = request.form['change_date']
+        try:
+            lessons = literal_eval(request.form['lessons'])
+        except:
+            return jsonify({'result': 'error', 'field': 'lessons'}), 400
+        print(lessons)
         if not re.match('\d{2}\.\d{2}\.\d{2}', change_date):
             return jsonify({'result': 'error', 'field': 'change_date'}), 400
 
-        if change_date in schedule['changes']:
-            return jsonify({'result': 'error'}), 409
+        for change in schedule['changes']:
+            if change['change_date'] == change_date:
+                return jsonify({'result': 'error'}), 409
 
 
         db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
-                                {
-                                    '$addToSet:': {
-                                        {'change_date':lessons}
-                                    }
-                                })
+                                {'$addToSet': {
+                                        'changes': {
+                                            'change_date':change_date,
+                                            'lessons':lessons
+                                        }
+                                    }})
 
 
         return jsonify({'result': 'success'}), 201

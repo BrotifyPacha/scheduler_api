@@ -55,6 +55,10 @@
     margin-left: -1px;
 }
 
+.rounded-group *:focus{
+    z-index: 2;
+}
+
 .rounded-group-vertical{
     display: flex;
     border-radius: 1rem;
@@ -84,6 +88,10 @@
     margin-left: 0 !important;
     margin-top: -1px;
     padding-bottom: 0.5rem;
+}
+
+.rounded-group-vertical *:focus{
+    z-index: 2;
 }
 
 /*dropdowns*/

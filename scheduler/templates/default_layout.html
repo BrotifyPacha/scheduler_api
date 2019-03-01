@@ -12,8 +12,8 @@
     <script src="{{url_for('static', filename='bootstrap-4.2.1/js/bootstrap.bundle.js')}}"></script>
 
     <!--icons font awesome -->
-    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/regular.js" integrity="sha384-Gxfqh68NuE4s0o2renzieYkDYVbdJynynsdrB7UG9yEvgpS9TVM+c4bknWfQXUBg" crossorigin="anonymous"></script>
-    <script defer src="https://use.fontawesome.com/releases/v5.7.2/js/fontawesome.js" integrity="sha384-xl26xwG2NVtJDw2/96Lmg09++ZjrXPc89j0j7JHjLOdSwHDHPHiucUjfllW0Ywrq" crossorigin="anonymous"></script>
+    <script src="{{url_for('static', filename='icons/font-awesome-regular.js')}}"></script>
+    <script src="{{url_for('static', filename='icons/font-awesome.js')}}"></script>
 
     {% if title %}
         <title>{{title}}</title>
@@ -56,7 +56,44 @@
                         })
                     }
                 })
+            })
 
+            $('#change-date-modal').on('show.bs.modal', function(event){
+                var btn = event.relatedTarget
+                var alias = btn.dataset['scheduleAlias']
+
+                $('#change_date').keyup(function(){
+                    var date = $('#change_date').val()
+                    if ( (date.length >= 3 && date[2] != ".") || (date.length >= 6 && date[5] != '.')){
+                        $('#change_date').addClass('is-invalid').removeClass('is-valid')
+                        $('#modal-save').attr('disabled', true)
+                    }
+                    if (/[\d]{2}\.[\d]{2}\.[\d]{2}/.test(date)){
+                        $('#change_date').addClass('is-valid').removeClass('is-invalid')
+                        $('#modal-save').attr('disabled', false)
+                    }
+
+                })
+                $('#modal-save').click(function(){
+                    var lessons = []
+                    for (var i=0; i<9; i++){
+                        lesson = $(`#lessons-${i}`).val()
+                        if (lesson != null) lessons.push(lesson)
+                        else lessons.push('')
+                    }
+                    $.ajax({
+                        url: '{{url_for('web.edit_schedule', alias='alias')}}'.replace('alias', alias),
+                        type: 'PUT',
+                        data: {'change_date': $('#change_date').val(), 'lessons': JSON.stringify(lessons)},
+                        success: function(result) {
+                            $('#change-date-modal').modal('hide')
+                        },
+                        error: function(result){
+                            console.log(result['status'])
+                            $('#change_date').addClass('is-invalid').removeClass('is-valid')
+                        }
+                    });
+                })
             })
 
             $('.subscribe-btn').click(function subscribe(event){
@@ -102,7 +139,7 @@
         </div>
     </div>
     <div class="modal fade" id="change-date-modal" role="dialog" aria-labelledby="modal-title" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
             <div class="modal-content rounded">
                 <div class="modal-header border-0">
                     <h5>Добавление изменения</h5>
@@ -110,13 +147,25 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                {% for l in range(9) %}
-                    <input class="form-control form-control-sm" id="lesson-{{l}}" type="text" placeholder="{{l+1}}">
-                {% endfor %}
+                <div class="modal-body pt-0">
+                    <div class="col-md input-group input-group-sm p-0 mb-2">
+                        <div class="input-group-prepend">
+                            <p class="input-group-text rounded-left">Дата</p>
+                        </div>
+                        <input class="form-control rounded-right" name="change_date" id="change_date" type="text" maxlength="8" placeholder='дд.мм.гг'>
+                        <div class="invalid-feedback">Введите дату, когда расписание будет отличаться от обычного в формате дд.мм.гг</div>
+                    </div>
+                    <div class="rounded-group-vertical">
+                    {% for l in range(9) %}
+                        <input class="form-control form-control-sm" id="lesson-{{l}}" type="text" placeholder="{{l+1}}">
+                    {% endfor %}
+                    </div>
                 </div>
                 <div class="d-flex flex-row-reverse mx-3 mb-3">
-                    <button class="btn btn-danger rounded-pill" id="modal-save"></button>
+                    <div class="rounded-group">
+                        <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
+                        <button class="btn btn-danger rounded-pill" id="modal-save" disabled>Добавить изменение</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,8 +176,8 @@
     <nav class="shadow-sm navbar navbar-expand-md bg-light mb-3">
         <div class="container">
             <a class="navbar-brand" href="{{url_for('web.home')}}"><b>Scheduler</b></a>
-            <button class="navbar-toggler btn btn-primary btn-sm my-1" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">
-                <img src="{{url_for('static', filename='icons\menu_icon.png')}}" style="height: 1em; width: 1em"/>
+            <button class="navbar-toggler btn btn-primary btn-sm my-1 rounded-pill" style="background-color: var(--primary);" type="button" data-toggle="collapse" data-target="#collapse-menu">
+                <img src="{{url_for('static', filename='icons/menu_icon.png')}}" style="height: 1em; width: 1em"/>
             </button>
             <div class="collapse navbar-collapse" id="collapse-menu">
                 <div class="mx-auto mt-2 mt-md-0 search-bar">

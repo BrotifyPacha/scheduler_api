@@ -30,7 +30,7 @@
             {% endif %}
             {% if user['_id'] == schedule['creator'] or user['_id'] in schedule['moderators'] %}
                 <div class="dropdown-divider my-1"></div>
-                <a class="dropdown-item text-primary" href="#">Изменение</a>
+                <a class="dropdown-item text-primary" data-toggle="modal" data-target="#change-date-modal" data-schedule-alias="{{schedule.alias}}" href="#">Изменение</a>
                 <a class="dropdown-item text-primary"  href="{{url_for('web.edit_schedule', alias=schedule.alias)}}" id="schedule_edit">Редактировать</a>
             {%endif%}
             {% if user['_id'] == schedule['creator'] %}

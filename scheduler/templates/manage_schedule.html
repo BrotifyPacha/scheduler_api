@@ -167,7 +167,7 @@
             var week_count = $('#week_count').val()
             var first_day = $('#first_day').val()
             var schedule = get_parsed_schedule(week_count);
-            console.log(schedule);
+            //console.log(schedule);
             $.post('{{url_for('web.create_schedule')}}', {
                 'schedule_name':schedule_name,
                 'alias':alias,
@@ -266,7 +266,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <b>Настройки Расписания</b>
             {% if schedule%}
-            <div class="btn-group">
+            <div class="rounded-group">
                 <a class="btn btn-secondary" id="cancel" href="{{url_for('web.home')}}">Отмена</a>
                 <button class="btn btn-primary" id="save">Сохранить</button>
             </div>
@@ -353,7 +353,7 @@
                                     <i class="far fa-clipboard"></i>
                                 </div>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="card-body p-0 rounded-group-vertical px-1 py-2">
                                 {% for l in range(9) %}
                                     <input class="form-control form-control-sm" id="lesson-{{w}}-{{d}}-{{l}}" type="text" placeholder="{{l+1}}" {%if schedule and w < schedule.schedule|length %} value="{{schedule.schedule[w][d][l]}}"{%endif%}>
                                 {% endfor %}
