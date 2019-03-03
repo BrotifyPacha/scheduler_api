@@ -274,13 +274,14 @@ def edit_schedule(alias):
 
         db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
                                 {'$addToSet': {
-                                        'changes': {
-                                            'change_date':change_date,
-                                            'lessons':lessons
+                                        'changes':{
+                                            change_date: lessons
                                         }
+                                        #'changes': {
+                                        #    'change_date':change_date,
+                                        #    'lessons':lessons
+                                        #}
                                     }})
-
-
         return jsonify({'result': 'success'}), 201
 
     user = db.users.find_one({'_id': ObjectId(user_id)})

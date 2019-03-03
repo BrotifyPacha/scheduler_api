@@ -28,7 +28,7 @@
                 var btn = event.relatedTarget
                 var alias = btn.dataset['scheduleAlias']
                 var name = btn.dataset['scheduleName']
-                var action = btn.dataset['action']
+                action = btn.dataset['action']
                 if (action == 'delete')
                     var title = `Вы уверены что хотите удалить расписание "${name}"?`;
                 else var title = `Вы уверены что хотите отписаться от расписания "${name}"?`;
@@ -38,7 +38,9 @@
                 $('#modal-confirm').empty()
                 $('#modal-confirm').append(action == 'delete' ? 'Удалить' : 'Отписаться')
 
-                $('#modal-confirm').click(function(){
+                $('#modal-confirm').off()
+                $('#modal-confirm').on('click' , function(){
+                    //console.log(action)
                     if (action == 'delete'){
                         $.post('{{url_for('web.delete_schedule', alias='alias')}}'.replace('alias', alias), function(){
                             window.location.replace('{{url_for('web.home')}}')
@@ -46,17 +48,20 @@
                         }).fail(function(result){
                             window.location.replace('{{url_for('web.home')}}')
                         })
-                    }
-                    if (action == 'unsubscribe'){
+                    } else if (action == 'unsubscribe'){
                         $.post('{{url_for('web.unsubscribe', alias='alias')}}'.replace('alias', alias), function(){
-                            window.location.replace('{{url_for('web.home')}}')
+                            //window.location.replace('{{url_for('web.home')}}')
+                            document.location.reload()
 
                         }).fail(function(result){
-                            window.location.replace('{{url_for('web.home')}}')
+                            document.location.reload()
+                            //window.location.replace('{{url_for('web.home')}}')
                         })
                     }
                 })
             })
+
+
 
             $('#change-date-modal').on('show.bs.modal', function(event){
                 var btn = event.relatedTarget
@@ -164,7 +169,7 @@
                 <div class="d-flex flex-row-reverse mx-3 mb-3">
                     <div class="rounded-group">
                         <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
-                        <button class="btn btn-danger rounded-pill" id="modal-save" disabled>Добавить изменение</button>
+                        <button class="btn btn-danger rounded-pill" id="modal-save" disabled>Добавить</button>
                     </div>
                 </div>
             </div>

@@ -46,6 +46,9 @@
                 var active_week = (weeks_passed % week_count) +1;
                 //console.log(active_week);
             }
+
+            var changes = {{schedule['changes'] | safe}}
+
             day_of_the_week = today.getDay();
             if (day_of_the_week == 0) day_of_the_week = 7;
             $(`#week-${active_week}-day-${day_of_the_week}`).addClass('today');
@@ -56,8 +59,10 @@
 {% endblock head%}
 {% block content %}
     <div class="rounded border">
-        <div class="rounded border-bottom px-3 pt-2 pb-1 shadow-sm">
+        <div class="d-flex rounded border-bottom px-3 pt-2 pb-1">
             <h5>{{schedule.name}}</h5>
+            {% import 'macros.html' as macros%}
+            {{ macros.schedule_menu(user, schedule)}}
         </div>
         <div class="p-3">
             <div class="btn btn-primary">Подписчики</div>
