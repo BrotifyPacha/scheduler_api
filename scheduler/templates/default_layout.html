@@ -11,6 +11,8 @@
     <script src="{{url_for('static', filename='jquery-3.3.1.min.js')}}"></script>
     <script src="{{url_for('static', filename='bootstrap-4.2.1/js/bootstrap.bundle.js')}}"></script>
 
+    <script src="{{url_for('static', filename='main.js')}}"></script>
+
     <!--icons font awesome -->
     <script src="{{url_for('static', filename='icons/font-awesome-regular.js')}}"></script>
     <script src="{{url_for('static', filename='icons/font-awesome.js')}}"></script>
@@ -77,25 +79,37 @@
                         $('#change_date').addClass('is-valid').removeClass('is-invalid')
                         $('#modal-save').attr('disabled', false)
                     }
-
                 })
-                $('#modal-save').click(function(){
+                $('#modal-save').off()
+                $('#modal-save').on('click', function(){
+                    var change_date = $('#change_date').val()
+                    var override = $('#change_date').hasClass('is-half-valid')
                     var lessons = []
                     for (var i=0; i<9; i++){
-                        lesson = $(`#lessons-${i}`).val()
+                        lesson = $(`#lesson-${i}`).val()
                         if (lesson != null) lessons.push(lesson)
                         else lessons.push('')
                     }
                     $.ajax({
                         url: '{{url_for('web.edit_schedule', alias='alias')}}'.replace('alias', alias),
                         type: 'PUT',
-                        data: {'change_date': $('#change_date').val(), 'lessons': JSON.stringify(lessons)},
+                        data: {'change_date': change_date, 'lessons': JSON.stringify(lessons), 'override': override},
                         success: function(result) {
                             $('#change-date-modal').modal('hide')
+                            //Очищаем поля для последующей активации формы
+                            for (var i=0; i<9; i++){
+                                $(`#lesson-${i}`).val('')
+                            }
+                            $('#change_date').val('')
                         },
                         error: function(result){
                             console.log(result['status'])
-                            $('#change_date').addClass('is-invalid').removeClass('is-valid')
+                            if (result['status'] == 409){
+                                $('#change_date').addClass('is-half-valid').removeClass('is-invalid')
+                                $('#modal-save').empty().append('Перезаписать')
+                            } else {
+                                $('#change_date').addClass('is-invalid').removeClass('is-valid')
+                            }
                         }
                     });
                 })
@@ -169,7 +183,7 @@
                 <div class="d-flex flex-row-reverse mx-3 mb-3">
                     <div class="rounded-group">
                         <button class="btn btn-secondary" id="modal-cancel" data-dismiss="modal">Отмена</button>
-                        <button class="btn btn-danger rounded-pill" id="modal-save" disabled>Добавить</button>
+                        <button class="btn btn-success rounded-pill" id="modal-save" disabled>Добавить</button>
                     </div>
                 </div>
             </div>
@@ -227,8 +241,6 @@
         {% block content %}{% endblock %}
         </div>
     {% endblock %}
-    <div class="p-3">
     {% block no_container %}{% endblock %}
-    </div>
 </body>
 </html>

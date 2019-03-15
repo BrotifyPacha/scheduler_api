@@ -19,102 +19,167 @@
             border-color: #dee2e6 #dee2e6 #dee2e6;
         }
     </style>
-    <script>
+<script>
         $(function readyFn(){
             week_count = {{schedule.schedule|length}};
             var today = new Date();
+            var schedule = {{schedule['schedule'] | safe }}
+            var changes = {{schedule['changes'] | safe }}
+            setDayholderByDate(today, schedule, changes);
 
-            var active_week = 1;
+            //window.location.hash = `#week-${active_week}-day-${day_of_the_week}`;
 
-            if (week_count > 1){
-                var first_day = '{{schedule.first_day}}';
-                var year = '20'+first_day.substring(6)
-                var month = first_day.substring(3, 5)
-                var day = first_day.substring(0, 2)
-                //console.log(`${year}-${month}-${day}`)
-                first_day_date = new Date(parseInt(year), parseInt(month)-1, parseInt(day))
-                //console.log(first_day_date)
+            $('#subscribers').on('show.bs.collapse', function(){
+                $('#show-subscribers').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
+                $('#show-changes').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
+            })
+            $('#accordion-changes').on('show.bs.collapse', function(event){
+                if (event.target == document.getElementById('accordion-changes')){
+                    $('#show-changes').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
+                    $('#show-subscribers').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
+                }
+            })
 
-                var today_time = today.getTime();
-                var first_day_time = first_day_date.getTime();
+            $('#subscribers').on('hide.bs.collapse', function(){
+                $('#show-subscribers').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
+                $('#show-changes').removeClass('mb-1')
+            })
+            $('#accordion-changes').on('hide.bs.collapse', function(event){
+                if (event.target == document.getElementById('accordion-changes')){
+                    $('#show-changes').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
+                    $('#show-subscribers').removeClass('mb-1')
+                }
+            })
+        })
 
-                var timeDelta = today_time - first_day_time;
+
+        function setDayholderByDate(date, schedule, changes){
+            day_of_the_week = getDayOfTheWeek(date)
+            for (var i = -day_of_the_week; i<7-day_of_the_week; i++){
+                var day = new Date(date.getFullYear(), date.getMonth(), date.getDate()+i)
+                var week_day_labels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
+                $(`.day-${i+day_of_the_week}`).attr('id', day.getTime())
+                $(`.day-${i+day_of_the_week}`).find('.card-header').empty().append(`<h5>${week_day_labels[i+day_of_the_week]}</h5>`+`<sup>${dateToStr(day)}</sup>`)
+
+                if (dateToMillis(day) == dateToMillis(new Date())) $(`.day-${i+day_of_the_week}`).addClass('today')
+
+                var lessons = getLessonsForDate(day, schedule, changes)
+                var has_lessons = false;
+                for (var l=0; l<9; l++){
+                    if (lessons[l].length > 0) has_lessons = true;
+                    $(`#lesson-${i+day_of_the_week}-${l}`).find('.lesson-name').empty().append(lessons[l])
+                }
+                if (!has_lessons) $(`.day-${i+day_of_the_week}`).addClass('dayoff')
+            }
+        }
+
+        function getDayOfTheWeek(date){
+            var day_of_the_week = date.getDay();
+            if (day_of_the_week == 0) day_of_the_week = 7;
+            day_of_the_week -= 1;
+            //console.log(`getDayOfTheWeek: ${day_of_the_week}`)
+            return day_of_the_week;
+        }
+
+        function getLessonsForDate(date, schedule, changes){
+            var active_week = 0;
+            lessons = null
+
+            changes.forEach(function(change){
+                console.log(change['change_date_millis']+' '+date.getTime())
+                if (change['change_date_millis'] == date.getTime()) lessons = change['lessons']
+            })
+            if (lessons != null ) {
+                return lessons;
+            }
+            if (schedule.length > 1){
+                var first_day_millis = strToDate('{{schedule.first_day}}');
+                var timeDelta = date.getTime() - first_day_millis;
                 timeDelta = timeDelta/1000/60/60/24 //конвертируем в дни
-
                 var weeks_passed = Math.floor(timeDelta/7)
                 //console.log(weeks_passed);
-                var active_week = (weeks_passed % week_count) +1;
+                var active_week = (weeks_passed % week_count);
                 //console.log(active_week);
             }
-
-            var changes = {{schedule['changes'] | safe}}
-
-            day_of_the_week = today.getDay();
-            if (day_of_the_week == 0) day_of_the_week = 7;
-            $(`#week-${active_week}-day-${day_of_the_week}`).addClass('today');
-            $(`#nav-week-${active_week}`).tab('show')
-            window.location.hash = `#week-${active_week}-day-${day_of_the_week}`;
-        })
+            var day_of_the_week = getDayOfTheWeek(date);
+            return schedule[active_week][day_of_the_week]
+        }
     </script>
 {% endblock head%}
 {% block content %}
-    <div class="rounded border">
-        <div class="d-flex rounded border-bottom px-3 pt-2 pb-1">
-            <h5>{{schedule.name}}</h5>
-            {% import 'macros.html' as macros%}
-            {{ macros.schedule_menu(user, schedule)}}
+    <div class="mb-3 mx-0 mx-lg-5">
+        <div class="mx-0 mx-lg-5">
+            <div class="rounded border mx-0 mx-lg-5">
+                <div class="d-flex justify-content-between align-items-middle rounded px-3 pt-2 pb-1">
+                    <h5>{{schedule.name}}</h5>
+                    {% import 'macros.html' as macros%}
+                    {{ macros.schedule_menu(user, schedule)}}
+                </div>
+            </div>
         </div>
-        <div class="p-3">
-            <div class="btn btn-primary">Подписчики</div>
+    </div>
+    <div class="mb-3 mx-0 mx-lg-5">
+        <div class="mx-0 mx-lg-5">
+            <div class="mx-0 mx-lg-5">
+                <div class="accordion" id="accordion-expandable">
+                    <div class="d-flex justify-content-center">
+                        <div id="show-changes" class="btn btn-primary btn-sm rounded-pill mr-1" data-toggle="collapse" data-target="#accordion-changes">Изменения</div>
+                        <div id="show-subscribers" class="btn btn-primary btn-sm rounded-pill" data-toggle="collapse" data-target="#subscribers">Подписчики</div>
+                    </div>
+                    <div class="collapse accordion rounded border inserted-list" id="accordion-changes" data-parent="#accordion-expandable">
+                        {% for change in schedule.changes %}
+                        <div class="inserted-list-item px-3 py-1 collapsed" data-toggle="collapse" data-target="#id-{{change.change_date_millis}}" aria-expanded="false" aria-controls="id-{{change.change_date_millis}}">
+                            <h6 class="my-1 ">{{change.change_date_str}}</h6>
+                        </div>
+                        <div class="collapse inserted-list" id="id-{{change.change_date_millis}}" data-parent="#accordion-changes">
+                            {% for lesson in change.lessons %}
+                            <div class="d-flex align-items-center inserted-list-item py-1 px-3">
+                                <div class="text-muted">{{loop.index}}</div>
+                                <div class="flex-grow-1 text-center lesson-name">{{lesson}}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="collapse" id="subscribers" data-parent="#accordion-expandable">
+                        <div class="rounded border inserted-list">
+                            {% for subscriber in schedule.subscribed_users %}
+                            <div id="{{subscriber._id}}" class="subscriber d-flex align-items-center justify-content-between inserted-list-item px-3 py-1">
+                                <h6 class="py-1 m-0">{{subscriber.username}}</h6>
+                                <div>
+                                {% if subscriber._id in schedule.moderators %}
+                                <div class="badge badge-success badge-pill">Модератор</div>
+                                {% elif subscriber._id == schedule.creator %}
+                                <div class="badge badge-primary badge-pill">Создатель</div>
+                                {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock content %}
 {% block no_container %}
     {% set weekdays=['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'] %}
     <div class="container-fluid px-0 px-lg-5">
-        <div class="weekholder">
-            <nav class="weektabholder">
-                <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                {% for i in range(schedule.schedule|length) %}
-                    <a class="nav-item nav-link p-2 px-3 mr-1 {% if i==0 %}active{%endif%}" id="nav-week-{{i+1}}" data-toggle="tab" href="#week-{{i+1}}" >
-                        <h6 class="mb-0">{{i+1}}-я</h6>
-                    </a>
+        <div class="dayholder">
+        {% for d in range(7) %}
+            <div class="d-flex flex-column day-{{d}}" id="">
+                <div class="card-header pb-1 text-center"><h6>{{weekdays[d]}}</h6></div>
+                <div class="lessonholder rounded border inserted-list m-2 flex-grow-1 shadow-sm">
+                {% for l in range(9) %}
+                    <div class="d-flex align-items-center inserted-list-item py-1 px-3" id="lesson-{{d}}-{{l}}">
+                        <div class="text-muted">{{l+1}}</div>
+                        <div class="flex-grow-1 text-center lesson-name"></div>
+                    </div>
                 {% endfor %}
                 </div>
-            </nav>
-            <div class="tab-content">
-            {% for w in range(schedule.schedule|length) %}
-                <div class="tab-pane fade show {% if w<1 %}active{%endif%}" id="week-{{w+1}}">
-                    <div class="dayholder" >
-                    {% for d in range(schedule.schedule[w]|length) %}
-                        <div class="d-flex flex-column" id="week-{{w+1}}-day-{{d+1}}">
-                            <div class="card-header pb-1 text-center"><h6>{{weekdays[d]}}</h6></div>
-                            {% set ns = namespace(has_lessons=false) %}
-                            {% for l in range(schedule.schedule[w][d]|length)%}
-                                {% if schedule.schedule[w][d][l]|length > 0 %}
-                                    {% set ns.has_lessons = true %}
-                                {% endif %}
-                            {% endfor %}
-                            {% if ns.has_lessons %}
-                                <div class="lessonholder rounded-group-vertical m-2 flex-grow-1 list-group shadow-sm">
-                                {% for l in range(schedule.schedule[w][d]|length) %}
-                                    <div class="d-flex align-items-center list-group-item py-1 px-3">
-                                        <div class="text-muted">{{l+1}}</div>
-                                        <div class="flex-grow-1 text-center">{{schedule.schedule[w][d][l]}}</div>
-                                    </div>
-                                {% endfor %}
-                                </div>
-                            {% else %}
-                                <div class="rounded m-2 flex-grow-1 d-flex align-items-center">
-                                    <div class="text-muted text-center mx-auto p-2">Выходной</div>
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
+                <span class="rounded m-2 p-2 my-auto text-center text-muted dayoff-card">Выходной</span>
             </div>
+        {% endfor %}
         </div>
     </div>
 {% endblock no_container %}

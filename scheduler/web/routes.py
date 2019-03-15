@@ -1,6 +1,7 @@
 from scheduler import app, db, auth
 from flask import render_template, request, session, redirect, url_for, flash, jsonify, Blueprint
 from bson.objectid import ObjectId
+from bson.int64 import Int64
 from scheduler import utils
 from ast import literal_eval
 from math import ceil
@@ -81,7 +82,6 @@ def logout():
 
 @web.route('/')
 def home():
-    print(request.user_agent.browser)
     user_id = auth.check_session_for_token(session)
     if user_id is not None:
         user = db.users.find_one({'_id': ObjectId(user_id)})
@@ -132,7 +132,31 @@ def search(query='', page=1):
 def view_schedule(alias):
     user_id = auth.check_session_for_token(session)
 
-    schedule = db.schedules.find_one({'alias': alias})
+    results = db.schedules.aggregate([
+        {
+            '$match':{
+                'alias':alias
+            }
+        },
+        {
+            '$lookup':{
+                'from': 'users',
+                'localField': 'subscribed_users',
+                'foreignField': '_id',
+                'as': 'subscribed_users'
+            }
+        },
+        {
+            '$project':{
+                'subscribed_users.firebase_id':0,
+                'subscribed_users.salt':0,
+                'subscribed_users.password':0
+            }
+        },
+
+    ])
+    for result in results:
+        schedule = result
     if schedule is None:
         flash(error_schedule_not_found, 'warning')
         return redirect(url_for('web.home'));
@@ -141,6 +165,8 @@ def view_schedule(alias):
         if ObjectId(user_id) not in schedule['subscribed_users'] and ObjectId(user_id) != schedule['creator']:
             flash('У вас нет доступа к этому расписанию, если вы считает что это ошибка, свяжитесь с его создателем и попросите выслать вам приглашение', 'warning')
             return redirect(url_for('web.home'));
+
+
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('view_schedule.html', title=schedule['name'], user=user, schedule=schedule)
 
@@ -252,36 +278,51 @@ def edit_schedule(alias):
     # Добавление изменения на определённую дату
     if request.method == 'PUT':
         if 'change_date' not in request.form:
-            print('no change-date')
             return jsonify({'result': 'error', 'field': 'change_date'}), 400
         if 'lessons' not in request.form:
-            print('no lessons')
             return jsonify({'result': 'error', 'field': 'lessons'}), 400
+        if 'override' not in request.form:
+            return jsonify({'result': 'error'}), 400
 
-        change_date = request.form['change_date']
+        change_date_str = request.form['change_date']
+        if not re.match('\d{2}\.\d{2}\.\d{2}', change_date_str):
+            return jsonify({'result': 'error', 'field': 'change_date'}), 400
+
+        override = request.form['override'] == 'true'
+        change_date_millis = utils.date_in_millis(request.form['change_date'])
         try:
             lessons = literal_eval(request.form['lessons'])
         except:
             return jsonify({'result': 'error', 'field': 'lessons'}), 400
-        print(lessons)
-        if not re.match('\d{2}\.\d{2}\.\d{2}', change_date):
-            return jsonify({'result': 'error', 'field': 'change_date'}), 400
 
         for change in schedule['changes']:
-            if change['change_date'] == change_date:
+            if change['change_date_millis'] == change_date_millis and not override:
                 return jsonify({'result': 'error'}), 409
-
-
         db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
-                                {'$addToSet': {
-                                        'changes':{
-                                            change_date: lessons
+                                {
+                                    '$pull': {
+                                        'changes': {
+                                            'change_date': Int64(change_date_millis)
                                         }
-                                        #'changes': {
-                                        #    'change_date':change_date,
-                                        #    'lessons':lessons
-                                        #}
-                                    }})
+                                    }
+                                })
+        db.schedules.update_one({'_id': ObjectId(schedule['_id'])},
+                                {
+                                    '$push': {
+                                        'changes': {
+                                            '$each': [
+                                                {
+                                                    'change_date_millis': Int64(change_date_millis),
+                                                    'change_date_str': change_date_str,
+                                                    'lessons': lessons,
+                                                }
+                                            ],
+                                            '$sort': {
+                                                'change_date_millis': 1
+                                            }
+                                        }
+                                    }
+                                })
         return jsonify({'result': 'success'}), 201
 
     user = db.users.find_one({'_id': ObjectId(user_id)})

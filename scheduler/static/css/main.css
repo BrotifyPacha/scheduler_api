@@ -17,19 +17,27 @@
 .rounded-top {
   border-top-left-radius: 1rem !important;
   border-top-right-radius: 1rem !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
 .rounded-right {
   border-top-right-radius: 1rem !important;
   border-bottom-right-radius: 1rem !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
 }
 
 .rounded-bottom {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
   border-bottom-right-radius: 1rem !important;
   border-bottom-left-radius: 1rem !important;
 }
 
 .rounded-left {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
   border-top-left-radius: 1rem !important;
   border-bottom-left-radius: 1rem !important;
 }
@@ -113,9 +121,8 @@
     background-color: var(--primary);
     color: #fff;
 }
-.today *:not(.card-header):not(h6){
+.today *:not(.card-header)*{
     background-color: var(--primary-light);
-    border-radius: 1rem;
 }
 
 /* Вью для сообщений */
@@ -127,4 +134,23 @@
 .message-title {
     background-color: rgba(0,0,0, 0.03);
     padding: 0.75rem 1.25rem;
+}
+
+/* Вставленный список (Списко с границами лишь между элементами)*/
+.inserted-list .inserted-list-item:not(:first-child){
+    border-top: 1px solid #dee2e6;
+}
+.inserted-list .inserted-list-item:first-child{
+    border: 0;
+}
+
+/* Отображение выходного дня */
+.dayoff .lessonholder{
+    display: none;
+}
+.dayoff .dayoff-card{
+    display: block
+}
+.dayoff-card {
+    display: none;
 }
