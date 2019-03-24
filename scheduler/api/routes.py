@@ -114,20 +114,40 @@ def add_schedule():
 
 
 @api.route('/api/schedules/<alias>', methods=['GET', 'PUT', 'PATCH'])
-def manage_schedule(alias):
-    # проверяем авторизован ли пользователь
-    user_id = auth.check_authorization_header(request)
-    if user_id is None: abort(401)
+@auth.authenticate(request)
+def manage_schedule(alias, user=''):
+    results = db.schedules.aggregate([
+        {
+            '$match': {
+                'alias': alias
+            }
+        },
+        {
+            '$lookup': {
+                'from': 'users',
+                'localField': 'subscribed_users',
+                'foreignField': '_id',
+                'as': 'subscribed_users'
+            }
+        },
+        {
+            '$project': {
+                'subscribed_users.firebase_id': 0,
+                'subscribed_users.salt': 0,
+                'subscribed_users.password': 0
+            }
+        },
 
-    schedule = db.schedules.find_one({'alias': alias})
+    ])
+    for result in results:
+        schedule = result
     if schedule is None: abort(404)
 
     if request.method == 'GET':
         availability = schedule['availability']
-        if availability == 'private' and (ObjectId(user_id) not in schedule['subscribed_users'] or
-                                     ObjectId(user_id) not in schedule['moderators'] or
-                                     ObjectId(user_id) != schedule[
-                                         'creator']):  # str нужно чтобы избавиться от ObjectId типа
+        if availability == 'private' and (ObjectId(user['_id']) not in schedule['subscribed_users'] or
+                                     ObjectId(user['_id']) not in schedule['moderators'] or
+                                     ObjectId(user['_id']) != schedule['creator']):  # str нужно чтобы избавиться от ObjectId типа
             abort(401)
         output = {
             'name': schedule['name'],
@@ -143,7 +163,7 @@ def manage_schedule(alias):
         }
         return str(output), 200
     elif request.method == 'PUT':
-        if ObjectId(user_id) not in schedule['moderators'] and ObjectId(user_id) != schedule['creator']:
+        if ObjectId(user['_id']) not in schedule['moderators'] and ObjectId(user['_id']) != schedule['creator']:
             abort(401)
         change = {
             'date': request.args['date'],

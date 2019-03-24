@@ -1,4 +1,4 @@
-{% extends 'default_layout.html '%}
+{% extends 'default_layout.html'%}
 {% block head %}
     {{super()}}
     <style>
@@ -20,91 +20,91 @@
         }
     </style>
 <script>
-        $(function readyFn(){
-            week_count = {{schedule.schedule|length}};
-            var today = new Date();
-            var schedule = {{schedule['schedule'] | safe }}
-            var changes = {{schedule['changes'] | safe }}
-            setDayholderByDate(today, schedule, changes);
+    $(function readyFn(){
+        week_count = {{schedule.schedule|length}};
+        var today = new Date();
+        var schedule = {{schedule['schedule'] | safe }}
+        var changes = {{schedule['changes'] | safe }}
+        setDayholderByDate(today, schedule, changes);
 
-            //window.location.hash = `#week-${active_week}-day-${day_of_the_week}`;
+        //window.location.hash = `#week-${active_week}-day-${day_of_the_week}`;
 
-            $('#subscribers').on('show.bs.collapse', function(){
-                $('#show-subscribers').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
-                $('#show-changes').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
-            })
-            $('#accordion-changes').on('show.bs.collapse', function(event){
-                if (event.target == document.getElementById('accordion-changes')){
-                    $('#show-changes').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
-                    $('#show-subscribers').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
-                }
-            })
-
-            $('#subscribers').on('hide.bs.collapse', function(){
-                $('#show-subscribers').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
-                $('#show-changes').removeClass('mb-1')
-            })
-            $('#accordion-changes').on('hide.bs.collapse', function(event){
-                if (event.target == document.getElementById('accordion-changes')){
-                    $('#show-changes').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
-                    $('#show-subscribers').removeClass('mb-1')
-                }
-            })
+        $('#subscribers').on('show.bs.collapse', function(){
+            $('#show-subscribers').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
+            $('#show-changes').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
+        })
+        $('#accordion-changes').on('show.bs.collapse', function(event){
+            if (event.target == document.getElementById('accordion-changes')){
+                $('#show-changes').removeClass('rounded-pill mb-1').addClass('rounded-top rounded-bottom-0 pb-1')
+                $('#show-subscribers').removeClass('rounded-top rounded-bottom-0 pb-1').addClass('mb-1 rounded-pill')
+            }
         })
 
-
-        function setDayholderByDate(date, schedule, changes){
-            day_of_the_week = getDayOfTheWeek(date)
-            for (var i = -day_of_the_week; i<7-day_of_the_week; i++){
-                var day = new Date(date.getFullYear(), date.getMonth(), date.getDate()+i)
-                var week_day_labels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
-                $(`.day-${i+day_of_the_week}`).attr('id', day.getTime())
-                $(`.day-${i+day_of_the_week}`).find('.card-header').empty().append(`<h5>${week_day_labels[i+day_of_the_week]}</h5>`+`<sup>${dateToStr(day)}</sup>`)
-
-                if (dateToMillis(day) == dateToMillis(new Date())) $(`.day-${i+day_of_the_week}`).addClass('today')
-
-                var lessons = getLessonsForDate(day, schedule, changes)
-                var has_lessons = false;
-                for (var l=0; l<9; l++){
-                    if (lessons[l].length > 0) has_lessons = true;
-                    $(`#lesson-${i+day_of_the_week}-${l}`).find('.lesson-name').empty().append(lessons[l])
-                }
-                if (!has_lessons) $(`.day-${i+day_of_the_week}`).addClass('dayoff')
+        $('#subscribers').on('hide.bs.collapse', function(){
+            $('#show-subscribers').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
+            $('#show-changes').removeClass('mb-1')
+        })
+        $('#accordion-changes').on('hide.bs.collapse', function(event){
+            if (event.target == document.getElementById('accordion-changes')){
+                $('#show-changes').addClass('rounded-pill').removeClass('rounded-top rounded-bottom-0 pb-1')
+                $('#show-subscribers').removeClass('mb-1')
             }
-        }
+        })
+    })
 
-        function getDayOfTheWeek(date){
-            var day_of_the_week = date.getDay();
-            if (day_of_the_week == 0) day_of_the_week = 7;
-            day_of_the_week -= 1;
-            //console.log(`getDayOfTheWeek: ${day_of_the_week}`)
-            return day_of_the_week;
-        }
 
-        function getLessonsForDate(date, schedule, changes){
-            var active_week = 0;
-            lessons = null
+    function setDayholderByDate(date, schedule, changes){
+        day_of_the_week = getDayOfTheWeek(date)
+        for (var i = -day_of_the_week; i<7-day_of_the_week; i++){
+            var day = new Date(date.getFullYear(), date.getMonth(), date.getDate()+i)
+            var week_day_labels = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
+            $(`.day-${i+day_of_the_week}`).attr('id', day.getTime())
+            $(`.day-${i+day_of_the_week}`).find('.card-header').empty().append(`<h5>${week_day_labels[i+day_of_the_week]}</h5>`+`<sup>${dateToStr(day)}</sup>`)
 
-            changes.forEach(function(change){
-                console.log(change['change_date_millis']+' '+date.getTime())
-                if (change['change_date_millis'] == date.getTime()) lessons = change['lessons']
-            })
-            if (lessons != null ) {
-                return lessons;
+            if (dateToMillis(day) == dateToMillis(new Date())) $(`.day-${i+day_of_the_week}`).addClass('today')
+
+            var lessons = getLessonsForDate(day, schedule, changes)
+            var has_lessons = false;
+            for (var l=0; l<9; l++){
+                if (lessons[l].length > 0) has_lessons = true;
+                $(`#lesson-${i+day_of_the_week}-${l}`).find('.lesson-name').empty().append(lessons[l])
             }
-            if (schedule.length > 1){
-                var first_day_millis = strToDate('{{schedule.first_day}}');
-                var timeDelta = date.getTime() - first_day_millis;
-                timeDelta = timeDelta/1000/60/60/24 //конвертируем в дни
-                var weeks_passed = Math.floor(timeDelta/7)
-                //console.log(weeks_passed);
-                var active_week = (weeks_passed % week_count);
-                //console.log(active_week);
-            }
-            var day_of_the_week = getDayOfTheWeek(date);
-            return schedule[active_week][day_of_the_week]
+            if (!has_lessons) $(`.day-${i+day_of_the_week}`).addClass('dayoff')
         }
-    </script>
+    }
+
+    function getDayOfTheWeek(date){
+        var day_of_the_week = date.getDay();
+        if (day_of_the_week == 0) day_of_the_week = 7;
+        day_of_the_week -= 1;
+        //console.log(`getDayOfTheWeek: ${day_of_the_week}`)
+        return day_of_the_week;
+    }
+
+    function getLessonsForDate(date, schedule, changes){
+        var active_week = 0;
+        lessons = null
+
+        changes.forEach(function(change){
+            console.log(change['change_date_millis']+' '+date.getTime())
+            if (change['change_date_millis'] == date.getTime()) lessons = change['lessons']
+        })
+        if (lessons != null ) {
+            return lessons;
+        }
+        if (schedule.length > 1){
+            var first_day_millis = strToDate('{{schedule.first_day}}');
+            var timeDelta = date.getTime() - first_day_millis;
+            timeDelta = timeDelta/1000/60/60/24 //конвертируем в дни
+            var weeks_passed = Math.floor(timeDelta/7)
+            //console.log(weeks_passed);
+            var active_week = (weeks_passed % week_count);
+            //console.log(active_week);
+        }
+        var day_of_the_week = getDayOfTheWeek(date);
+        return schedule[active_week][day_of_the_week]
+    }
+</script>
 {% endblock head%}
 {% block content %}
     <div class="mb-3 mx-0 mx-lg-5">

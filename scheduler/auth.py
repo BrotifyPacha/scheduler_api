@@ -3,9 +3,24 @@ from os import urandom
 from base64 import b64encode
 import jwt
 from bson.objectid import ObjectId
+from flask import session, request
+import functools
 
 from scheduler import db
 secret = 'aeX2bjauRpkQZLrKD4hTYb0RgjkB3zBW6lJVH9FROTA='
+
+
+def authenticate(method):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if isinstance(method, type(session)):
+                user = get_user_from_session(session)
+            else:
+                user = get_user_from_header(request)
+            return func(*args, **kwargs, user=user)
+        return wrapper
+    return decorator
 
 
 def hash_password_and_salt(password, salt):
@@ -22,7 +37,7 @@ def check_password(password, salt, password_hash):
 
 
 # если всё прошло успешно возвращает user_id, в противном случае None
-def check_authorization_header(request):
+def get_user_from_header(request):
     if 'Authorization' not in request.headers:
         return None
     auth_token = request.headers['Authorization']
@@ -33,18 +48,14 @@ def check_authorization_header(request):
     if auth_token != gen_signed_token(user_id):
         return None
     user = db.users.find_one({'_id': ObjectId(user_id)})
-    if user is None:
-        return None
-    return user_id
+    return user
 
-def check_session_for_token(session):
+def get_user_from_session(session):
     if 'token' not in session:
         return None
     user_id = check_token(session['token'])
     user = db.users.find_one({'_id': ObjectId(user_id)})
-    if user is None:
-        return None
-    return user_id
+    return user
 
 
 def check_token(token):

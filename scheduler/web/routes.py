@@ -12,6 +12,11 @@ web = Blueprint('web', __name__)
 error_schedule_not_found = 'Расписания по данной ссылке не существует'
 
 
+@web.route('/testauth', methods=['GET'])
+@auth.authenticate(session)
+def test_auth(user=''):
+    return str(user), 200
+
 @web.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -81,11 +86,10 @@ def logout():
 
 
 @web.route('/')
-def home():
-    user_id = auth.check_session_for_token(session)
-    if user_id is not None:
-        user = db.users.find_one({'_id': ObjectId(user_id)})
-        schedules = db.schedules.find({'subscribed_users': ObjectId(user_id)})
+@auth.authenticate(session)
+def home(user=''):
+    if user is not None:
+        schedules = db.schedules.find({'subscribed_users': ObjectId(user['_id'])})
         return render_template('home.html', user=user, schedules=schedules)
     return render_template('home.html')
 
@@ -93,70 +97,53 @@ def home():
 @web.route('/search/', methods=['GET', 'POST'])
 @web.route('/search/<query>', methods=['GET', 'POST'])
 @web.route('/search/<query>/page/<int:page>', methods=['GET', 'POST'])
-def search(query='', page=1):
+@auth.authenticate(session)
+def search(query='', page=1, user=''):
+    print(page)
     if 'query' in request.form:
         query = request.form['query']
     if len(query) == 0: return redirect(url_for('web.search', query='.*', page=1))
 
-
-    print(query)
-
-    user_id = auth.check_session_for_token(session)
-    search_query_regex = '.*(%s).*' % query
-    result_count = db.schedules.find({
-        '$or': [
-            {'name': {'$regex': search_query_regex, '$options': 'i'}},
-            {'alias': {'$regex': search_query_regex, '$options': 'i'}}
-        ]
-    }).count()
+    search_query_regex = f'.*{query}.*'
+    db_query = {}
+    if user is not None:
+        db_query = {
+            'availability': 'public',
+            '$or': [
+                {'subscribers': ObjectId(user['_id'])},
+                {'creator': ObjectId(user['_id'])}
+            ],
+            '$or': [
+                {'name': {'$regex': search_query_regex, '$options': 'i'}},
+                {'alias': {'$regex': search_query_regex, '$options': 'i'}}
+            ]
+        }
+    else:
+        db_query = {
+            'availability': 'public',
+            '$or': [
+                {'name': {'$regex': search_query_regex, '$options': 'i'}},
+                {'alias': {'$regex': search_query_regex, '$options': 'i'}}
+            ]
+        }
+    result_count = db.schedules.find(db_query).count()
 
     limit = 5
     page_count = ceil(result_count/limit)
 
-    if (page <= 0 ):
+    if page < 0:
         return redirect(url_for('web.search', query=query, page=1))
-
-    if (page > page_count):
+    if page > page_count:
         return redirect(url_for('web.search', query=query, page=page_count))
 
-    schedules = db.schedules.find({'$or':[
-        {'name': {'$regex': search_query_regex, '$options': 'i'}},
-        {'alias': {'$regex': search_query_regex, '$options': 'i'}}
-    ]}).skip((page-1)*limit).limit(limit)
-
-    user = db.users.find_one({'_id': ObjectId(user_id)})
+    schedules = db.schedules.find(db_query).skip((page-1)*limit).limit(limit)
     return render_template('search_result.html', title='Поиск', schedules=schedules, query=query, page_count=page_count, page=page, user=user)
 
 
 @web.route('/schedules/<alias>', methods=['GET'])
-def view_schedule(alias):
-    user_id = auth.check_session_for_token(session)
+@auth.authenticate(session)
+def view_schedule(alias, user=''):
 
-    results = db.schedules.aggregate([
-        {
-            '$match':{
-                'alias':alias
-            }
-        },
-        {
-            '$lookup':{
-                'from': 'users',
-                'localField': 'subscribed_users',
-                'foreignField': '_id',
-                'as': 'subscribed_users'
-            }
-        },
-        {
-            '$project':{
-                'subscribed_users.firebase_id':0,
-                'subscribed_users.salt':0,
-                'subscribed_users.password':0
-            }
-        },
-
-    ])
-    for result in results:
-        schedule = result
     if schedule is None:
         flash(error_schedule_not_found, 'warning')
         return redirect(url_for('web.home'));
@@ -172,9 +159,9 @@ def view_schedule(alias):
 
 
 @web.route('/schedules/create', methods=['GET', 'POST'])
-def create_schedule():
-    user_id = auth.check_session_for_token(session)
-    if user_id is None:
+@auth.authenticate
+def create_schedule(user=''):
+    if user is None:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
         return redirect(url_for('web.home'))
 
@@ -212,16 +199,15 @@ def create_schedule():
             'alias': alias,
             'availability': availability,
             'first_day': first_day,
-            'creator': ObjectId(user_id),
+            'creator': ObjectId(user['_id']),
             'moderators': [],
             'invited_users': [],
-            'subscribed_users': [ObjectId(user_id)],
+            'subscribed_users': [ObjectId(user['_id'])],
             'schedule': schedule,
             'changes': []
         })
         return jsonify({'result': 'success'}), 201
 
-    user = db.users.find_one({'_id': ObjectId(user_id)})
     return render_template('manage_schedule.html', title='Создание', user=user)
 
 
