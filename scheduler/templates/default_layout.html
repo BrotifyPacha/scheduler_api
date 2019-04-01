@@ -5,24 +5,28 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <!--meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"-->
+
     <!-- bootstrap -->
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/main.css')}}">
     <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='bootstrap-4.2.1/css/bootstrap.css')}}">
+
+    <!-- jQuery -->
     <script src="{{url_for('static', filename='jquery-3.3.1.min.js')}}"></script>
     <script src="{{url_for('static', filename='bootstrap-4.2.1/js/bootstrap.bundle.js')}}"></script>
 
     <script src="{{url_for('static', filename='main.js')}}"></script>
 
-    <!--icons font awesome -->
+    <!-- font awesome icons -->
     <script src="{{url_for('static', filename='icons/font-awesome-regular.js')}}"></script>
     <script src="{{url_for('static', filename='icons/font-awesome.js')}}"></script>
 
-    {% if title %}
+        {% if title %}
         <title>{{title}}</title>
-    {% else %}
+        {% else %}
         <title>Scheduler</title>
-    {% endif %}
-    {% endblock %}
+        {% endif %}
+    {% endblock  head %}
+
     {% block schedule_menu_script %}
     <script>
         $(function readyFn(){
@@ -127,7 +131,6 @@
         })
     </script>
     {% endblock schedule_menu_script %}
-
     <style>
         @media (min-width: 768px) {
             .search-bar{
@@ -135,7 +138,6 @@
             }
         }
     </style>
-
 </head>
 <body>
     {% block schedule_menu_modal %}
@@ -211,7 +213,7 @@
                         <a class="nav-link dropdown-toggle"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
                         <div class="dropdown-menu dropdown-menu-md-right m-0 shadow rounded">
                             <a class="dropdown-item" href="#">Приглашения</a>
-                            <a class="dropdown-item" href="#">Настройки</a>
+                            <a class="dropdown-item" href="{{url_for('web.settings', user=user)}}">Настройки</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{{url_for('web.logout')}}">Выйти</a>
                         </div>

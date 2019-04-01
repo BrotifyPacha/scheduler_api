@@ -114,7 +114,7 @@ def add_schedule():
 
 
 @api.route('/api/schedules/<alias>', methods=['GET', 'PUT', 'PATCH'])
-@auth.authenticate(request)
+@auth.authenticate()
 def manage_schedule(alias, user=''):
     results = db.schedules.aggregate([
         {

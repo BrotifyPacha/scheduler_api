@@ -10,14 +10,15 @@ from scheduler import db
 secret = 'aeX2bjauRpkQZLrKD4hTYb0RgjkB3zBW6lJVH9FROTA='
 
 
-def authenticate(method):
+def authenticate():
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            if isinstance(method, type(session)):
-                user = get_user_from_session(session)
-            else:
+            user = get_user_from_session(session)
+            if user is None:
                 user = get_user_from_header(request)
+                if user is None:
+                    return func(*args, **kwargs)
             return func(*args, **kwargs, user=user)
         return wrapper
     return decorator
@@ -42,10 +43,8 @@ def get_user_from_header(request):
         return None
     auth_token = request.headers['Authorization']
     try:
-        user_id = jwt.decode(auth_token, secret, algorithms=['HS512'])['user_id']
+        user_id = jwt.decode(auth_token, secret, verify=True, algorithms=['HS512'])['user_id']
     except:
-        return None
-    if auth_token != gen_signed_token(user_id):
         return None
     user = db.users.find_one({'_id': ObjectId(user_id)})
     return user

@@ -17,11 +17,9 @@
 {% block schedule_menu_modal %}{{super()}}{% endblock schedule_menu_modal %}
 {% block content %}
     {% if user %}
-        <!--h1>Ну привет, {{user['username']}}</h1-->
         {% for schedule in schedules %}
             {% import 'macros.html' as macros %}
             {{ macros.schedule(user=user, schedule=schedule)}}
-
         {% else %}
             <div class="rounded border shadow-sm bg-light mb-3" style="border: 0px">
                 <div class="card-header rounded pb-1"><h5>Ой, вы не подписаны ни на одно расписание</h5></div>
@@ -31,7 +29,7 @@
             </div>
         {% endfor %}
         <div class="d-flex flex-row">
-            <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
+            <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule', user=user)}}">Создать новое расписание</a>
         </div>
     {% else %}
         {% import 'macros.html' as macros %}

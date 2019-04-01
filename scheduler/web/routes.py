@@ -11,12 +11,6 @@ web = Blueprint('web', __name__)
 
 error_schedule_not_found = 'Расписания по данной ссылке не существует'
 
-
-@web.route('/testauth', methods=['GET'])
-@auth.authenticate(session)
-def test_auth(user=''):
-    return str(user), 200
-
 @web.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -86,8 +80,8 @@ def logout():
 
 
 @web.route('/')
-@auth.authenticate(session)
-def home(user=''):
+@auth.authenticate()
+def home(user=None):
     if user is not None:
         schedules = db.schedules.find({'subscribed_users': ObjectId(user['_id'])})
         return render_template('home.html', user=user, schedules=schedules)
@@ -97,7 +91,7 @@ def home(user=''):
 @web.route('/search/', methods=['GET', 'POST'])
 @web.route('/search/<query>', methods=['GET', 'POST'])
 @web.route('/search/<query>/page/<int:page>', methods=['GET', 'POST'])
-@auth.authenticate(session)
+@auth.authenticate()
 def search(query='', page=1, user=''):
     print(page)
     if 'query' in request.form:
@@ -141,26 +135,27 @@ def search(query='', page=1, user=''):
 
 
 @web.route('/schedules/<alias>', methods=['GET'])
-@auth.authenticate(session)
-def view_schedule(alias, user=''):
+@auth.authenticate()
+def view_schedule(alias, user=None):
 
+    schedule = db.schedules.find_one({'alias': alias})
     if schedule is None:
         flash(error_schedule_not_found, 'warning')
         return redirect(url_for('web.home'));
 
     if schedule['availability'] == 'private':
-        if ObjectId(user_id) not in schedule['subscribed_users'] and ObjectId(user_id) != schedule['creator']:
+        if ObjectId(user['_id']) not in schedule['subscribed_users'] and ObjectId(user['_id']) != schedule['creator']:
             flash('У вас нет доступа к этому расписанию, если вы считает что это ошибка, свяжитесь с его создателем и попросите выслать вам приглашение', 'warning')
             return redirect(url_for('web.home'));
 
 
-    user = db.users.find_one({'_id': ObjectId(user_id)})
+    user = db.users.find_one({'_id': ObjectId(user['_id'])})
     return render_template('view_schedule.html', title=schedule['name'], user=user, schedule=schedule)
 
 
 @web.route('/schedules/create', methods=['GET', 'POST'])
-@auth.authenticate
-def create_schedule(user=''):
+@auth.authenticate()
+def create_schedule(user=None):
     if user is None:
         flash('Вам нужно быть авторизованным, чтобы создать расписание', 'warning')
         return redirect(url_for('web.home'))
@@ -381,3 +376,8 @@ def unsubscribe(alias):
                                                                         'moderators': ObjectId(user_id)
                                                                     }})
     return '', 200
+
+@web.route('/settings', methods=['GET'])
+@auth.authenticate()
+def settings(user=None):
+    return render_template('settings.html', user=user)
