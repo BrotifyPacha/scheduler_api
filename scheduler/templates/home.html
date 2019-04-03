@@ -1,20 +1,4 @@
 {% extends 'default_layout.html' %}
-{% block head%}
-    {{super()}}
-    <style>
-        /*xl break-point*/
-    @media (min-width: 1200px){
-        #schedule-menu {
-            display: none;
-        }
-        #schedule:hover #schedule-menu {
-            display: inline-block;
-        }
-
-    </style>
-{% endblock head %}
-{% block schedule_menu_script %}{{super()}}{% endblock schedule_menu_script %}
-{% block schedule_menu_modal %}{{super()}}{% endblock schedule_menu_modal %}
 {% block content %}
     {% if user %}
         {% for schedule in schedules %}
@@ -29,7 +13,7 @@
             </div>
         {% endfor %}
         <div class="d-flex flex-row">
-            <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule', user=user)}}">Создать новое расписание</a>
+            <a class="btn btn-sm btn-outline-primary p-2 rounded-pill mx-auto" href="{{url_for('web.create_schedule')}}">Создать новое расписание</a>
         </div>
     {% else %}
         {% import 'macros.html' as macros %}

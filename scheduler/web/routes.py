@@ -207,14 +207,14 @@ def create_schedule(user=None):
 
 
 @web.route('/schedules/<alias>/edit', methods=['GET', 'POST', 'PUT'])
-def edit_schedule(alias):
+@auth.authenticate()
+def edit_schedule(alias, user=None):
     schedule = db.schedules.find_one({'alias': alias})
     if schedule is None:
         flash(error_schedule_not_found, 'warning')
         return redirect(url_for('web.home')), 404
 
-    user_id = auth.check_session_for_token(session)
-    if user_id is None or (ObjectId(user_id) != schedule['creator'] and ObjectId(user_id) not in schedule['moderators']):
+    if user is None or (ObjectId(user['_id']) != schedule['creator'] and ObjectId(user['_id']) not in schedule['moderators']):
         flash('Нехватает прав на редактирование этого расписания', 'danger')
         return redirect(url_for('web.home')), 401
 
@@ -306,7 +306,7 @@ def edit_schedule(alias):
                                 })
         return jsonify({'result': 'success'}), 201
 
-    user = db.users.find_one({'_id': ObjectId(user_id)})
+    user = db.users.find_one({'_id': ObjectId(user['_id'])})
     return render_template('manage_schedule.html', title='Редактирование', user=user, schedule=schedule)
 
 

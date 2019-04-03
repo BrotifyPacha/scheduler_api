@@ -1,0 +1,148 @@
+{% extends 'default_layout.html' %}
+{% block head %}
+    {{super()}}
+    <script>
+        $(function(){
+            $('#username_input').keyup(function(){
+                $('#login_done').attr('disabled', !usernameChecker());
+            })
+
+            $('#auth_password , #input_password, #input_confirm_password').keyup(function(){
+                $('#password_done').attr('disabled', !passwordChecker());
+            })
+
+            $('#login_done').click(function(){
+                var username = $('#username_input').val();
+                if (usernameChecker()){
+                    $.ajax({
+                        url:'{{url_for('api.manage_user', username=user['username'])}}',
+                        method:"PATCH",
+                        data :{username: username}
+                    }).done(function(result){
+                        console.log(result)
+                    })
+                } else {
+                    $('#login_done').attr('disabled', !usernameChecker());
+                }
+            })
+            $('#password_done').click(function(){
+                var auth_password = $('#auth_password').val();
+                var password = $('#input_new_password').val();
+                var confirmpassword = $('#input_new_password').val();
+                if (passwordChecker()){
+                    $.ajax({
+                        url:'{{url_for('api.manage_user', username=user['username'])}}',
+                        method:"PATCH",
+                        data :{auth_password: auth_password, password: password}
+                    }).done(function(result){
+                        console.log(result)
+                    }).fail(function(){
+                        $('#auth_password').addClass('is-invalid').removeClass('is-valid')
+                    })
+                } else {
+                    console.log('not')
+                    $('#login_done').attr('disabled', !usernameChecker());
+                }
+            })
+            function usernameChecker(){
+                var username = $('#username_input').val();
+                console.log(username)
+                $('#username-feedback').detach();
+                if (username.length < 1){
+                    $('#username_input').addClass('is-invalid').removeClass('is-valid');
+                    return false
+                }
+                if (/[^A-Za-z0-9_\.]+/.test(username)){
+                    $('#username_input').addClass('is-invalid').removeClass('is-valid');
+                    $('#username-feedback')
+                        .attr('hidden', false)
+                        .append('<div class="rounded alert alert-danger alert-username">Разрешены лишь символы латиницы (a-z), арабские цифры (0-9), "_" и "."</div>');
+                    return false
+                }
+                if (/.*(_{2}|\.{2})/.test(username)){
+                    $('#username_input').addClass('is-invalid').removeClass('is-valid');
+                    $('#username-feedback')
+                        .attr('hidden', false)
+                        .append('<div class="rounded alert alert-danger alert-username">Между двумя символами "_" или "." должна быть хотябы одна буква или цифра</div>');
+                    return false
+                }
+                $('#username_input').addClass('is-valid').removeClass('is-invalid');
+                return true;
+            };
+            function passwordChecker(){
+                var auth_password = $('#auth_password').val();
+                var password = $('#input_new_password').val();
+                var confirm_password = $('#input_confirm_password').val();
+                if (auth_password.length < 1){
+                    $('#auth_password').addClass('is-invalid').removeClass('is-valid')
+                    return false;
+                }
+                $('#auth_password').addClass('is-valid').removeClass('is-invalid')
+
+                if (password.length < 1){
+                    $('#input_new_password').addClass('is-invalid').removeClass('is-valid')
+                    return false;
+                }
+                $('#input_new_password').addClass('is-valid').removeClass('is-invalid')
+
+                if (confirm_password.length < 0 || confirm_password != password){
+                    $('#input_confirm_password').addClass('is-invalid').removeClass('is-valid')
+                    return false;
+                }
+                $('#input_confirm_password').addClass('is-valid').removeClass('is-invalid')
+
+                return true;
+            }
+        })
+    </script>
+{% endblock head %}
+{% block content %}
+<div class="border rounded shadow-sm">
+    <div class="accordion" id="settings_list">
+        <div class="border-bottom h5 p-3">Настройки</div>
+        <div class="my-2">
+            <div class="px-3" data-toggle="collapse" data-target="#username_collapse" id="username_section">
+                Смена логина
+            </div>
+            <div class="collapse px-3" id="username_collapse" data-parent="#settings_list">
+                <div class="input-group input-group-sm mb-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text rounded-left">Новый логин</span>
+                    </div>
+                    <input class="form-control rounded-right" name="username" id="username_input" type="text">
+                    <div class="invalid-feedback" id="username-feedback"></div>
+                </div>
+                <button class="rounded btn btn-primary btn-sm" id="login_done" disabled>Применить</button>
+            </div>
+            <div class="border-top my-2"></div>
+            <div class="px-3 bold" data-toggle="collapse" data-target="#password_collapse" id="password_section">
+                Смена пароля
+            </div>
+            <div class="collapse px-3" id="password_collapse" data-parent="#settings_list">
+                <div class="input-group input-group-sm mb-2 mt-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text rounded-left">Старый пароль</span>
+                    </div>
+                    <input class="form-control rounded-right" name="auth_password" id="auth_password" type="password">
+                    <div class="invalid-feedback" id="auth-password-feedback"></div>
+                </div>
+                <div class="input-group input-group-sm mb-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text rounded-left">Новый пароль</span>
+                    </div>
+                    <input class="form-control rounded-right" name="new_password" id="input_new_password" type="password">
+                    <div class="invalid-feedback" id="new-password-feedback"></div>
+                </div>
+                <div class="input-group input-group-sm mb-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text rounded-left">Подтверждение пароля</span>
+                    </div>
+                    <input class="form-control rounded-right" name="new_password" id="input_confirm_password" type="password">
+                    <div class="invalid-feedback" id="confirm-password-feedback"></div>
+                </div>
+                <div class="rounded btn btn-primary btn-sm " disabled id="password_done">Применить</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

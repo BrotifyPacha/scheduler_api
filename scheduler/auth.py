@@ -28,6 +28,7 @@ def hash_password_and_salt(password, salt):
     salted_password = (password+salt).encode('UTF-8')
     return sha3_512(salted_password).hexdigest()
 
+print(hash_password_and_salt('2', 'ZM6+d2Knq/eZ1Vfu0o5lGw/cpFhAB4Q3BMcz493ir04='))
 
 def gen_salt():
     return b64encode(urandom(32)).decode('UTF-8')

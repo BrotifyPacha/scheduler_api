@@ -1,3 +1,4 @@
+
 {% macro schedule(user, schedule) %}
     <div id="schedule" class="row align-items-center p-3 mb-3 mx-0 shadow-sm border rounded">
         <a class="col-md-10 text-decoration-none text-truncate" href="{{url_for('web.view_schedule', alias=schedule.alias)}}">
@@ -22,7 +23,7 @@
             <a class="btn btn-outline-primary rounded-pill p-0 px-2 mt-2 mt-md-0" href="#" id="control-menu" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
                 Настройки
             </a>
-            <div class="rounded-group-vertical dropdown-menu dropdown-menu-md-right shadow" aria-labelledby="#control-menu">
+            <div class="rounded-group-vertical dropdown-menu dropdown-menu-md-left shadow" aria-labelledby="#control-menu">
             {% set ns = namespace(subscribed = false) %}
             {% for subscriber in schedule['subscribed_users'] %}
                 {% if subscriber._id == user._id %}

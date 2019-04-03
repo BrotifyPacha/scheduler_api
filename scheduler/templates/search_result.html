@@ -1,20 +1,4 @@
 {% extends 'default_layout.html'%}
-{% block head %}
-    {{super()}}
-    <style>
-        /*xl break-point*/
-        @media (min-width: 1200px){
-            #schedule-menu {
-                display: none;
-            }
-            #schedule:hover #schedule-menu {
-                display: inline-block;
-            }
-        }
-    </style>
-{% endblock head %}
-{% block schedule_menu_script %}{{super()}}{% endblock schedule_menu_script %}
-{% block schedule_menu_modal %}{{super()}}{% endblock schedule_menu_modal %}
 {% block content %}
     {% if schedules[0] %}
         {% for schedule in schedules %}
@@ -24,9 +8,13 @@
         <div class="d-flex rounded-group justify-content-center">
         {% for p in range(1, page_count+1) %}
             {% if p == page %}
-            <a class="btn btn-primary" href="{{url_for('web.search', query=query, page=p)}}">{{p}}</a>
+            <a class="btn btn-primary" href="{{url_for('web.search', query=query, page=p)}}">
+                {{p}}
+            </a>
             {% else %}
-            <a class="btn btn-secondary" href="{{url_for('web.search', query=query, page=p)}}">{{p}}</a>
+            <a class="btn btn-secondary" href="{{url_for('web.search', query=query, page=p)}}">
+                {{p}}
+            </a>
             {% endif %}
         {% endfor %}
         </div>

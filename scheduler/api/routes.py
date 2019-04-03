@@ -2,6 +2,7 @@ from scheduler import db, auth, utils
 from flask import Blueprint, jsonify, request, abort, escape
 from bson.objectid import ObjectId
 from ast import literal_eval
+from pprint import pformat
 import re
 
 api = Blueprint('api', __name__)
@@ -65,14 +66,42 @@ def add_user():
     return jsonify({'token': auth.gen_signed_token(user_id)}), 201
 
 
-@api.route('/api/users/<username>', methods=['GET'])
-def get_user(username):
-    user = db.users.find_one({'username': username})
+@api.route('/api/users/<username>', methods=['GET', 'PATCH'])
+@auth.authenticate()
+def manage_user(username, user=None):
+    print(request.method)
+    if request.method == 'GET':
+        user = db.users.find_one({'username': username})
+        if user is None:
+            abort(404)
+        output = {'username': user['username']}
+        return jsonify(output), 200
+    elif request.method == 'PATCH':
+        if not user:
+            abort(403)
 
-    if user is None:
-        abort(404)
-    output = {'username': user['username'], 'firebase_id': user['firebase_id']}
-    return jsonify(output), 200  # response code - 200
+        username = user['username']
+        password = user['password']
+        if 'username' in request.form:
+            username = request.form['username']
+        if 'auth_password' in request.form and 'password' in request.form:
+            auth_password = auth.hash_password_and_salt(request.form['auth_password'], salt=user['salt'])
+            if auth_password != password:
+                abort(400)
+            print(request.form)
+            password = auth.hash_password_and_salt(request.form['password'], salt=user['salt'])
+
+
+        db.users.update_one({'_id': user['_id']}, {'$set':{
+            'username': username,
+            'password': password
+        }})
+        return '', 200
+    elif request.method == 'DELETE':
+        if not user:
+            abort(403)
+        db.users.remove_one({'_id': user['_id']})
+        return '', 200
 
 
 @api.route('/api/schedules/', methods=['POST'])

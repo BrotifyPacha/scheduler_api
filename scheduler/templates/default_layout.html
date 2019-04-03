@@ -130,6 +130,17 @@
 
         })
     </script>
+    <style>
+        /*xl break-point*/
+    @media (min-width: 1200px){
+        #schedule-menu {
+            display: none;
+        }
+        #schedule:hover #schedule-menu {
+            display: inline-block;
+        }
+
+    </style>
     {% endblock schedule_menu_script %}
     <style>
         @media (min-width: 768px) {
@@ -213,7 +224,7 @@
                         <a class="nav-link dropdown-toggle"  href="#user-menu" data-toggle="dropdown">{{user['username']}}</a>
                         <div class="dropdown-menu dropdown-menu-md-right m-0 shadow rounded">
                             <a class="dropdown-item" href="#">Приглашения</a>
-                            <a class="dropdown-item" href="{{url_for('web.settings', user=user)}}">Настройки</a>
+                            <a class="dropdown-item" href="{{url_for('web.settings')}}">Настройки</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="{{url_for('web.logout')}}">Выйти</a>
                         </div>
