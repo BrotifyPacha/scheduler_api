@@ -15,7 +15,7 @@
                 var username = $('#username_input').val();
                 if (usernameChecker()){
                     $.ajax({
-                        url:'{{url_for('api.manage_user', username=user['username'])}}',
+                        url:'{{url_for('api.manage_single_user', username=user['username'])}}',
                         method:"PATCH",
                         data :{username: username}
                     }).done(function(result){
@@ -31,7 +31,7 @@
                 var confirmpassword = $('#input_new_password').val();
                 if (passwordChecker()){
                     $.ajax({
-                        url:'{{url_for('api.manage_user', username=user['username'])}}',
+                        url:'{{url_for('api.manage_single_user', username=user['username'])}}',
                         method:"PATCH",
                         data :{auth_password: auth_password, password: password}
                     }).done(function(result){

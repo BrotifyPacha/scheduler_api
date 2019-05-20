@@ -1,4 +1,5 @@
-from scheduler import app, db, auth
+from scheduler import app, db
+from scheduler.api import auth
 from flask import render_template, request, session, redirect, url_for, flash, jsonify, Blueprint
 from bson.objectid import ObjectId
 from bson.int64 import Int64

@@ -80,9 +80,8 @@
                 return
             }
             {% if schedule %}
-            $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
+            $.get('{{url_for('api.manage_single_schedule', alias='')}}'+alias, {'schedule_id': $('.schedule').attr('id')},
             {% else %}
-            $.post('{{url_for('api.check_schedule_alias', alias='')}}'+alias,
             {% endif %}
                 function(result){
                     console.log(result);

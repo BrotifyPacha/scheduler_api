@@ -5,6 +5,7 @@ import jwt
 from bson.objectid import ObjectId
 from flask import session, request
 import functools
+from .aggr_utils import get_basic_user_aggregation
 
 from scheduler import db
 secret = 'aeX2bjauRpkQZLrKD4hTYb0RgjkB3zBW6lJVH9FROTA='
@@ -28,7 +29,6 @@ def hash_password_and_salt(password, salt):
     salted_password = (password+salt).encode('UTF-8')
     return sha3_512(salted_password).hexdigest()
 
-print(hash_password_and_salt('2', 'ZM6+d2Knq/eZ1Vfu0o5lGw/cpFhAB4Q3BMcz493ir04='))
 
 def gen_salt():
     return b64encode(urandom(32)).decode('UTF-8')
@@ -47,16 +47,22 @@ def get_user_from_header(request):
         user_id = jwt.decode(auth_token, secret, verify=True, algorithms=['HS512'])['user_id']
     except:
         return None
-    user = db.users.find_one({'_id': ObjectId(user_id)})
+    return get_user(user_id)
+
+def get_user(str_id):
+    aggregation = get_basic_user_aggregation()
+    aggregation.append({'$match': {'_id': ObjectId(str_id)}})
+    user = None
+    for item in db.users.aggregate(aggregation):
+        user = item
+    print(user)
     return user
 
 def get_user_from_session(session):
     if 'token' not in session:
         return None
     user_id = check_token(session['token'])
-    user = db.users.find_one({'_id': ObjectId(user_id)})
-    return user
-
+    return get_user(user_id)
 
 def check_token(token):
     try:
