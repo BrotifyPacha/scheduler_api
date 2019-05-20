@@ -1,0 +1,74 @@
+﻿RULE SET
+1. Подписаться можно лишь на публичные расписания
+	а) Если расписание приватное, подписаться можно лишь приняв приглашение, зайдя в личном меню в "Приглашения"
+2. Отписка от расписания убирает пользовтеля не только из списка подписанных, но и из списка модераторов (если пользователь был таковым)
+3. Можно отписаться созданного вами расписания
+4. Если вы создали приватное расписание и отписались от него, то вы можете подписаться на него без подписки
+5. Если пользователь не подписан на приватное расписание то он его не может увидеть в списке подписок у других людей или в поиске
+
+# При регистрации поля логин и пароль должны удовлетворять всем критериям
+# Username:
+# 1 min length = 3
+# 2 a-z0-9._
+# 3 only one _ or . in a row
+# 4 username must not be already taken
+# Password:
+# - min length = 6
+
+'user':{
+	'username':'user123',
+	'password':'randompass',
+	'salt':'1234567890123456',
+	'firebase_id':'adadjasdklhashdhklsbd'
+}
+
+'schedule':{
+        'alias': alias,
+        'availability': availability,
+        'first_day': first_day,
+        'creator': ObjectId(user_id),
+        'moderators': [],
+        'invited_users': [],
+        'subscribed_users': [ObjectId(user_id)],
+        'schedule': literal_eval(schedule),
+        'changes':[]
+}
+
+api/users/
+	GET 	- Поиск пользователей
+    - match_fields
+    - return_fields
+    - limit
+    - skip
+
+	POST 	- Регистрирование пользователя
+    - username
+    - password
+    --firebase_id
+
+api/users/<username>
+	GET 	- Получить пользователя и его расписания
+    - return_fields
+    PATCH 	- Изменение логина или пароля
+    DELETE 	- Удаление учётной записи
+	
+api/schedules/
+	POST 	- Добавление нового расписания 
+	
+api/schedules/<alias>
+	GET 	- Получить расписание и список его пользователей
+	PUT 	- Добавление изменения в расписании 
+	PATCH 	- Изменение какого либо поля расписания (alias, privacy, schedule, first_week_start)
+   #DELETE 	- Удаление расписания
+
+api/schedules/<alias>/invite/<username>
+	POST 	- создать приглашение для пользователя <username>
+    DELETE 	- убрать приглашение для пользователя <username>
+	
+api/schedules/<alias>/subscribe
+	POST 	- подписаться на расписание <alias>
+    DELETE 	- отписаться от расписания <alias>
+	
+api/schedules/<alias>/promote/<username>
+	POST	- повысить пользователя до уровня модератора
+	DELETE	- понизить пользователя до стандартного уровня
