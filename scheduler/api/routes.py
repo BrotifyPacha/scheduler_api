@@ -189,7 +189,7 @@ def manage_single_user(username, user=None):
         if 'schedules' in found_user:
             found_user['schedules'] = return_only_visible(user=user, schedules=found_user['schedules'])
         
-        return json_success(objectid_to_str([found_user]))
+        return json_success(objectid_to_str(found_user))
 
     elif request.method == 'PATCH':
         if not user or username != user['username']:
