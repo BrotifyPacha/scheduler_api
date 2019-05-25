@@ -73,8 +73,9 @@ def authorization():
 @auth.authenticate()
 def get_user_self(user=None):
     if not user:
-        return json_error("not authorized")
-    return redirect(manage_single_user(username=user["username"]))
+        return json_error("not authorized"), 200
+    print(user)
+    return manage_single_user(username=user["username"])
 
 
 @api.route('/api/users/', methods=['GET', 'POST'])
