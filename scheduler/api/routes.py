@@ -1,7 +1,7 @@
 from scheduler import db, utils
 from scheduler.api.aggr_utils import *
 from scheduler.api import auth
-from flask import Blueprint, jsonify, request, abort, escape
+from flask import Blueprint, jsonify, request, abort, escape, redirect
 from bson.objectid import ObjectId
 from bson.int64 import Int64
 from ast import literal_eval
@@ -37,11 +37,21 @@ USERNAME_MATCH_REGEX = '[a-z0-9_.-]+'
 ALIAS_MATCH_REGEX = '[A-Za-z0-9_.-]+'
 WRONG_CREDENTIALS = 'wrong_credentials'
 
+def get_args():
+    result = {}
+    for key, value in request.args.items():
+        result[key] = value
+    for key, value in request.form.items():
+        if key not in result:
+            result[key] = value
+    return result
+
 
 @api.route('/api/authenticate', methods=['POST'])
 def authorization():
-    username = escape(request.args['username']).lower()
-    password = request.args['password']
+    print(get_args())
+    username = escape(get_args()['username']).lower()
+    password = get_args()['password']
     user = db.users.find_one({'username': username})
     if user is None:
         return json_error(WRONG_CREDENTIALS)
@@ -51,10 +61,20 @@ def authorization():
         return json_error(WRONG_CREDENTIALS)
     user_id = str(user['_id'])
 
-    if 'firebase_id' in request.args:
-        firebase_id = request.args['firebase_id']
+
+    if 'firebase_id' in get_args():
+        firebase_id = get_args()['firebase_id']
         db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'firebase_id': firebase_id}})
     return json_success(data={'token': auth.gen_signed_token(user_id)}), 200
+
+
+
+@api.route("/api/users_self", methods=["GET"])
+@auth.authenticate()
+def get_user_self(user=None):
+    if not user:
+        return json_error("not authorized")
+    return redirect(manage_single_user(username=user["username"]))
 
 
 @api.route('/api/users/', methods=['GET', 'POST'])
@@ -145,9 +165,9 @@ def manage_single_user(username, user=None):
         return_fields = None
         #whitelist_return_fields = ['_id', 'username', 'schedules']
 
-        if 'return_fields' in request.args:
+        if 'return_fields' in get_args():
             try:
-                return_fields = literal_eval(request.args['return_fields'])
+                return_fields = literal_eval(get_args()['return_fields'])
                 #return_fields = whitelist_arr(whitelist_return_fields, return_fields)
             except:
                 return json_error(type='field', field='return_fields')
@@ -173,18 +193,25 @@ def manage_single_user(username, user=None):
     elif request.method == 'PATCH':
         if not user or username != user['username']:
             return json_error('not authorized'), 200
+        user = db.users.find_one({'_id': user["_id"]})
         username = user['username']
         password = user['password']
-        if 'username' in request.args:
-            username = request.args['username']
+        if 'username' in get_args():
+            username = get_args()['username']
             verify_username(username)
 
-        if 'auth_password' in request.args and 'password' in request.args:
-            auth_password = auth.hash_password_and_salt(request.args['auth_password'], salt=user['salt'])
-            new_password = request.args['password']
-            verify_password(new_password)
+
+        print("patching user")
+        if 'auth_password' in get_args() and 'password' in get_args():
+            print("changing password")
+            auth_password = auth.hash_password_and_salt(get_args()['auth_password'], salt=user['salt'])
+            new_password = get_args()['password']
+            if verify_password(new_password) is not None:
+                return verify_password(new_password)
+
             if auth_password != password:
                 return json_error('field', field='auth_password'), 200
+            print(f'new password = {new_password}')
             password = auth.hash_password_and_salt(new_password, salt=user['salt'])
         db.users.update_one({'_id': user['_id']}, {'$set':{
             'username': username,

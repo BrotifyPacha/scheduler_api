@@ -30,10 +30,11 @@
                 var password = $('#input_new_password').val();
                 var confirmpassword = $('#input_new_password').val();
                 if (passwordChecker()){
+                    console.log(auth_password+" "+password)
                     $.ajax({
                         url:'{{url_for('api.manage_single_user', username=user['username'])}}',
                         method:"PATCH",
-                        data :{auth_password: auth_password, password: password}
+                        data : {auth_password: auth_password, password: password}
                     }).done(function(result){
                         console.log(result)
                     }).fail(function(){
