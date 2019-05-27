@@ -76,10 +76,8 @@ def get_basic_user_aggregation():
                 'password': 0,
                 'firebase_id': 0,
                 'schedules.first_day': 0,
-                'schedules.creator': 0,
                 'schedules.moderators': 0,
                 'schedules.invited_users': 0,
-                'schedules.subscribed_users': 0,
                 'schedules.schedule': 0,
                 'schedules.changes': 0
             }
