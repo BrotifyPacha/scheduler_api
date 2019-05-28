@@ -49,7 +49,7 @@ def get_args():
 
 @api.route('/api/authenticate', methods=['POST'])
 def authorization():
-    print(get_args())
+    print(f"authorization = {get_args()}")
     username = escape(get_args()['username']).lower()
     password = get_args()['password']
     user = db.users.find_one({'username': username})
@@ -65,6 +65,9 @@ def authorization():
     if 'firebase_id' in get_args():
         firebase_id = get_args()['firebase_id']
         db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'firebase_id': firebase_id}})
+
+
+    print(f"authorization: id = {user_id} token = {auth.gen_signed_token(user_id)}")
     return json_success(data={'token': auth.gen_signed_token(user_id)}), 200
 
 
@@ -74,7 +77,7 @@ def authorization():
 def get_user_self(user=None):
     if not user:
         return json_error("not authorized"), 200
-    print(user)
+    print(f"get_user_self = {user}")
     return manage_single_user(username=user["username"])
 
 

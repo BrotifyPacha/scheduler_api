@@ -55,7 +55,7 @@ def get_user(str_id):
     user = None
     for item in db.users.aggregate(aggregation):
         user = item
-    print(user)
+    print(f"get_user(id) = {user}")
     return user
 
 def get_user_from_session(session):
@@ -77,5 +77,5 @@ def check_token(token):
     return user_id
 
 def gen_signed_token(user_id):
-    return jwt.encode({'user_id':user_id}, secret, algorithm='HS512').decode('utf-8')
+    return jwt.encode({'user_id': user_id}, secret, algorithm='HS512').decode('utf-8')
 
