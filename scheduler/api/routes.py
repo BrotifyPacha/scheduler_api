@@ -241,26 +241,30 @@ def manage_schedules(user=None):
         current_field = ''
         try:
             current_field = 'match_fields'
-            if 'match_fields' in request.args:
-                match_fields = literal_eval(request.args['match_fields'])
+            if 'match_fields' in get_args():
+                match_fields = literal_eval(get_args()['match_fields'])
+                print(match_fields)
             current_field = 'return_fields'
-            if 'return_fields' in request.args:
-                return_fields = literal_eval(request.args['return_fields'])
+            if 'return_fields' in get_args():
+                return_fields = literal_eval(get_args()['return_fields'])
             current_field = 'limit'
-            if 'limit' in request.args:
-                limit_int = int(request.args['limit'])
+            if 'limit' in get_args():
+                limit_int = int(get_args()['limit'])
             current_field = 'skip'
-            if 'skip' in request.args:
-                skip_int = int(request.args['skip'])
+            if 'skip' in get_args():
+                skip_int = int(get_args()['skip'])
         except:
             return json_error(type='field', field=current_field), 200
 
         match = parse_match_stage(match_fields, get_regex_wrapper(pre='.*', post='.*'))
         aggregation = get_basic_schedule_aggregation()
         aggregation.append({'$match': match})
+        print(match)
         result_obj = db.schedules.aggregate(aggregation)
+
         aggregated_result = []
         for item in result_obj:
+            print(item)
             aggregated_result.append(item)
 
         shown_schedules = return_only_visible(user=user, schedules=aggregated_result)

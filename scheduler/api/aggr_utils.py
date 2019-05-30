@@ -75,11 +75,11 @@ def get_basic_user_aggregation():
                 'salt': 0,
                 'password': 0,
                 'firebase_id': 0,
-                'schedules.first_day': 0,
-                'schedules.moderators': 0,
-                'schedules.invited_users': 0,
-                'schedules.schedule': 0,
-                'schedules.changes': 0
+                #'schedules.first_day': 0,
+                #'schedules.moderators': 0,
+                'schedules.invited_users': 0
+                #'schedules.schedule': 0,
+                #'schedules.changes': 0
             }
         }
     ]
@@ -97,7 +97,9 @@ def parse_match_stage(dict, field_wrapper):
             else:
                 match[key] = {'$in': dict[key]}
         elif isinstance(dict[key], str):
-            if field_wrapper:
+            if key == "_id":
+                match[key] = ObjectId(dict[key])
+            elif field_wrapper:
                 match[key] = field_wrapper(dict[key])
             else:
                 match[key] = dict[key]
